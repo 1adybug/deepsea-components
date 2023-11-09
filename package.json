@@ -1,0 +1,39 @@
+{
+    "name": "deepsea-components",
+    "version": "1.0.0",
+    "description": "格数科技自用组件库",
+    "module": "dist/esm/index.js",
+    "types": "dist/esm/index.d.ts",
+    "scripts": {
+        "dev": "father dev",
+        "build": "father build",
+        "build:deps": "father prebundle",
+        "prepublishOnly": "father doctor && npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/1adybug/deepsea-components"
+    },
+    "keywords": [],
+    "authors": [
+        "lurongv@qq.com"
+    ],
+    "license": "MIT",
+    "files": [
+        "dist",
+        "compiled"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "antd": "^5.11.0",
+        "deepsea-tools": "^1.0.0",
+        "react": "^18.2.0",
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.0/xlsx-0.20.0.tgz"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.37",
+        "father": "^4.3.7"
+    }
+}
