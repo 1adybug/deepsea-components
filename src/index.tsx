@@ -533,10 +533,15 @@ export function LoopSwiper<T>(props: LoopSwiperProps<T>) {
         throw new RangeError("size 必须是正数，speed 必须非0")
     }
     const keys = data.map((it, idx, arr) => (keyExactor ? keyExactor(it, idx, arr) : String(idx)))
+    const keysRef = useRef(keys)
     const cache = useRef({ size, gap, speed, keys, paused, className, direction })
     cache.current = { size, gap, speed, keys, paused, className, direction }
-    const eles = useRef<LoopSwiperItem[]>([])
-    eles.current = keys.map((key, idx) => ({ key, dom: null, offset: idx * (size + gap) + start }))
+    const eles = useRef<LoopSwiperItem[]>(keys.map((key, idx) => ({ key, dom: null, offset: idx * (size + gap) + start })))
+
+    if (keysRef.current.length !== keys.length || keysRef.current.some((it, idx) => it !== keys[idx])) {
+        keysRef.current = keys
+        eles.current = keys.map((key, idx) => ({ key, dom: null, offset: idx * (size + gap) + start }))
+    }
 
     function setStyles() {
         const { size, speed, className, direction } = cache.current
@@ -582,10 +587,15 @@ export function LoopSwiper<T>(props: LoopSwiperProps<T>) {
         return stop
     }, [])
 
+    function ref(dom: HTMLDivElement | null, index: number) {
+        if (!eles.current[index]) return
+        eles.current[index].dom = dom
+    }
+
     return (
         <Fragment>
             {data.map((it, idx, arr) => (
-                <div key={keys[idx]} ref={dom => (eles.current[idx].dom = dom)}>
+                <div key={keys[idx]} ref={dom => ref(dom, idx)}>
                     {render(it, idx, arr)}
                 </div>
             ))}
