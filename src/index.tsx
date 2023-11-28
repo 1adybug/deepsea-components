@@ -84,7 +84,7 @@ export async function getFileData<T extends InputFileDataType>(file: File, type:
 
 /** 专用与读取文件的组件 */
 export const InputFile = forwardRef<HTMLInputElement, InputFileProps>((props, ref) => {
-    const { multiple = false, type = "file", onChange, disabled: inputDisabled, ...otherProps } = props
+    const { multiple = false, type = "file", onChange, disabled: inputDisabled, ...others } = props
     const [disabled, setDisabled] = useState(false)
 
     async function onInputChange(e: ChangeEvent<HTMLInputElement>) {
@@ -117,7 +117,7 @@ export const InputFile = forwardRef<HTMLInputElement, InputFileProps>((props, re
         }
     }
 
-    return <input disabled={disabled && inputDisabled} ref={ref} type="file" multiple={multiple} onChange={onInputChange} {...otherProps} />
+    return <input disabled={disabled && inputDisabled} ref={ref} type="file" multiple={multiple} onChange={onInputChange} {...others} />
 })
 
 export interface ImportExcelProps extends Omit<InputFileProps, "multiple" | "onChange" | "accept" | "type"> {
@@ -126,7 +126,7 @@ export interface ImportExcelProps extends Omit<InputFileProps, "multiple" | "onC
 
 /** 专门用于读取 excel 的组件 */
 export const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>((props, ref) => {
-    const { onChange, ...otherProps } = props
+    const { onChange, ...others } = props
 
     function onInputChange(data: InputFileData<ArrayBuffer>) {
         const wb = read(data.result)
@@ -143,7 +143,7 @@ export const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>((props
         }
     }
 
-    return <InputFile ref={ref} accept=".xlsx" type="arrayBuffer" onChange={onInputChange} {...otherProps} />
+    return <InputFile ref={ref} accept=".xlsx" type="arrayBuffer" onChange={onInputChange} {...others} />
 })
 
 /** 手动导出 excel */
@@ -161,14 +161,14 @@ export interface ExportExcelProps extends ButtonHTMLAttributes<HTMLButtonElement
 
 /** 导出 excel 的 button 组件 */
 export const ExportExcel = forwardRef<HTMLButtonElement, ExportExcelProps>((props, ref) => {
-    const { data, fileName, onClick, ...otherProps } = props
+    const { data, fileName, onClick, ...others } = props
 
     function onButtonClick(e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) {
         exportExcel(data, fileName)
         onClick?.(e)
     }
 
-    return <button ref={ref} onClick={onButtonClick} {...otherProps} />
+    return <button ref={ref} onClick={onButtonClick} {...others} />
 })
 
 export interface TransitionBoxProps extends HTMLAttributes<HTMLDivElement> {
@@ -387,7 +387,7 @@ export function getGapCountAndSize(width: number, itemWidth: number, minGap: num
 
 /** 自适应浮动组件 */
 export function Flow<T>(props: FlowProps<T>) {
-    const { itemWidth, itemHeight, columnGap, rowGap = 0, maxRows, data, render, keyExactor, className, style, containerClassName, containerStyle, throttle, transitionDuration, onSizeChange, ...otherProps } = props
+    const { itemWidth, itemHeight, columnGap, rowGap = 0, maxRows, data, render, keyExactor, className, style, containerClassName, containerStyle, throttle, transitionDuration, onSizeChange, ...others } = props
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
     const [width, setWidth] = useState(0)
     const [columnCount, setColumnCount] = useState(1)
@@ -447,7 +447,7 @@ export function Flow<T>(props: FlowProps<T>) {
     }, [width, height, columnGapSize, columnCount, rowGap, contentShownRows, data.length, itemWidth, itemHeight, maxRows])
 
     return (
-        <div ref={ele} className={className} style={{ position: "relative", boxSizing: "border-box", height, ...style }} {...otherProps}>
+        <div ref={ele} className={className} style={{ position: "relative", boxSizing: "border-box", height, ...style }} {...others}>
             {showItems &&
                 data.map((it, idx) => (
                     <div
@@ -738,18 +738,27 @@ export const CircleText: FC<CircleTextProps> = props => {
     )
 }
 
-export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
-    /** 容器宽度 */
-    containerClassName?: string
-    /** 容器样式 */
-    containerStyle?: CSSProperties
-    scrollbarOptions?: Partial<ScrollbarOptions>
+export interface ScrollOptions extends Partial<ScrollbarOptions> {
     /** 滑块宽度 */
     thumbWidth?: number
 }
 
+export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
+    /** 滚动的配置 */
+    options?: ScrollOptions
+    /** 容器宽度 */
+    containerClassName?: string
+    /** 容器样式 */
+    containerStyle?: CSSProperties
+}
+
+/**
+ * 滚动条组件
+ * @description 注意 children 不是直接渲染在组件上的，而是渲染在内部的容器上
+ */
 export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
-    const { children, containerClassName, containerStyle, scrollbarOptions, thumbWidth, className, ...others } = props
+    const { children, containerClassName, containerStyle, options, className, ...others } = props
+    const { thumbWidth, ...scrollbarOptions } = options || {}
     const id = useId()
 
     useEffect(() => {
