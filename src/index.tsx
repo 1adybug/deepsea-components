@@ -1,6 +1,9 @@
-import { Tree } from "antd"
+import { css } from "@emotion/css"
+import clsx from "clsx"
 import { DrawArcOptions, drawArc, setFrameInterval } from "deepsea-tools"
-import React, { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
+import React, { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react"
+import SmoothScrollBar from "smooth-scrollbar"
+import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
 
 export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
@@ -178,7 +181,7 @@ export interface TransitionBoxProps extends HTMLAttributes<HTMLDivElement> {
 
 /** 尺寸渐变的组件 */
 export const TransitionBox: FC<TransitionBoxProps> = props => {
-    const { className, style, containerClassName, containerStyle, children, vertical = true, horizontal = true, time = 3000, ...otherProps } = props
+    const { style, containerClassName, containerStyle, children, vertical = true, horizontal = true, time = 3000, ...others } = props
     const box = useRef<HTMLDivElement>(null)
     const [width, setWidth] = useState(0)
     const [height, setHeight] = useState(0)
@@ -205,7 +208,7 @@ export const TransitionBox: FC<TransitionBoxProps> = props => {
     const outerStyle: CSSProperties = { transitionProperty: count === 3 ? [horizontal && "width", vertical && "height"].filter(Boolean).join(", ") : undefined, transitionDuration: count === 3 ? `${time}ms` : undefined, width, height, overflow: "hidden", position: "relative", ...style }
 
     return (
-        <div className={className} style={outerStyle} {...otherProps}>
+        <div style={outerStyle} {...others}>
             <div className={containerClassName} style={{ position: "absolute", ...containerStyle }} ref={box}>
                 {children}
             </div>
@@ -734,3 +737,55 @@ export const CircleText: FC<CircleTextProps> = props => {
         </Fragment>
     )
 }
+
+export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
+    /** 容器宽度 */
+    containerClassName?: string
+    /** 容器样式 */
+    containerStyle?: CSSProperties
+    scrollbarOptions?: Partial<ScrollbarOptions>
+    /** 滑块宽度 */
+    thumbWidth?: number
+}
+
+export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
+    const { children, containerClassName, containerStyle, scrollbarOptions, thumbWidth, className, ...others } = props
+    const id = useId()
+
+    useEffect(() => {
+        SmoothScrollBar.init(document.querySelector(`[data-scroll-id="${id}"]`)!, { thumbMinSize: 64, ...scrollbarOptions })
+    }, [])
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                !!thumbWidth &&
+                    css`
+                        .scrollbar-track.scrollbar-track-x {
+                            height: ${thumbWidth}px;
+                        }
+
+                        .scrollbar-thumb.scrollbar-thumb-x {
+                            height: ${thumbWidth}px;
+                        }
+
+                        .scrollbar-track.scrollbar-track-y {
+                            width: ${thumbWidth}px;
+                        }
+
+                        .scrollbar-thumb.scrollbar-thumb-y {
+                            width: ${thumbWidth}px;
+                        }
+                    `,
+                className
+            )}
+            data-scroll-id={id}
+            {...others}
+        >
+            <div className={containerClassName} style={containerStyle}>
+                {children}
+            </div>
+        </div>
+    )
+})

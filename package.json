@@ -27,9 +27,12 @@
         "access": "public"
     },
     "dependencies": {
-        "antd": "^5.11.0",
+        "@emotion/css": "^11.11.2",
+        "antd": "^5.11.5",
+        "clsx": "^2.0.0",
         "deepsea-tools": "^1.0.0",
         "react": "^18.2.0",
+        "smooth-scrollbar": "^8.8.4",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.0/xlsx-0.20.0.tgz"
     },
     "devDependencies": {
