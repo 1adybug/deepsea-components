@@ -753,7 +753,7 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
     const id = useId()
 
     useEffect(() => {
-        SmoothScrollBar.init(document.querySelector(`[data-scroll-id="${id}"]`)!, { thumbMinSize: 64, ...scrollbarOptions })
+        SmoothScrollBar.init(document.querySelector(`[data-scroll-id="${id}"]`)!, scrollbarOptions)
     }, [])
 
     return (
