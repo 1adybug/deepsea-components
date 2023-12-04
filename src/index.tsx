@@ -798,3 +798,146 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
         </div>
     )
 })
+
+export const X = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const Y = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                    flex-direction: column;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const Auto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    flex: auto;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const None = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    flex: none;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const XAuto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                    flex: auto;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const YAuto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                    flex-direction: column;
+                    flex: auto;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const XNone = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                    flex: none;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
+
+export const YNone = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { className, ...others } = props
+
+    return (
+        <div
+            ref={ref}
+            className={clsx(
+                css`
+                    display: flex;
+                    flex-direction: column;
+                    flex: none;
+                `,
+                className
+            )}
+            {...others}
+        />
+    )
+})
