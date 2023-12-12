@@ -21,7 +21,8 @@
     "license": "MIT",
     "files": [
         "dist",
-        "compiled"
+        "compiled",
+        "src"
     ],
     "publishConfig": {
         "access": "public"
