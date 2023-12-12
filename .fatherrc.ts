@@ -1,7 +1,10 @@
 import { defineConfig } from "father"
 
 export default defineConfig({
-    esm: {},
+    esm: {
+        input: "src",
+        output: "dist"
+    },
     sourcemap: true,
     targets: { chrome: 90 }
 })
