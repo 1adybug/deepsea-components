@@ -29,11 +29,13 @@
     },
     "dependencies": {
         "@emotion/css": "^11.11.2",
-        "clsx": "^2.0.0",
-        "deepsea-tools": "^1.16.1",
-        "react": "^18.2.0",
+        "clsx": "^2.1.0",
+        "deepsea-tools": "^1.17.0",
         "smooth-scrollbar": "^8.8.4",
-        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.0/xlsx-0.20.0.tgz"
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
+    },
+    "peerDependencies": {
+        "react": ">=18.2.0"
     },
     "devDependencies": {
         "@types/react": "^18.2.37",

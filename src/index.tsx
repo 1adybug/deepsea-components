@@ -1,7 +1,7 @@
 import { css } from "@emotion/css"
 import clsx from "clsx"
 import { DrawArcOptions, drawArc, setFrameInterval } from "deepsea-tools"
-import React, { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react"
+import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
@@ -95,7 +95,7 @@ export const InputFile = forwardRef<HTMLInputElement, InputFileProps>((props, re
         try {
             if (multiple) {
                 const result: any[] = []
-                for (const file of files) {
+                for (const file of Array.from(files)) {
                     result.push({
                         result: await getFileData(file, type),
                         file
@@ -459,8 +459,7 @@ export function Flow<T>(props: FlowProps<T>) {
                             height: itemHeight,
                             transition: transitionDuration !== null ? `all ${transitionDuration ?? 400}ms` : undefined,
                             ...getPosition(idx)
-                        }}
-                    >
+                        }}>
                         <div style={{ width: itemWidth, height: itemHeight, display: maxRows && idx >= maxRows * columnCount ? "none" : "block", ...containerStyle }}>{render(it, idx, getHidden(idx))}</div>
                     </div>
                 ))}
@@ -790,154 +789,10 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
                 className
             )}
             data-scroll-id={id}
-            {...others}
-        >
+            {...others}>
             <div className={containerClassName} style={containerStyle}>
                 {children}
             </div>
         </div>
-    )
-})
-
-export const X = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const Y = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                    flex-direction: column;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const Auto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    flex: auto;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const None = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    flex: none;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const XAuto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                    flex: auto;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const YAuto = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                    flex-direction: column;
-                    flex: auto;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const XNone = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                    flex: none;
-                `,
-                className
-            )}
-            {...others}
-        />
-    )
-})
-
-export const YNone = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>((props, ref) => {
-    const { className, ...others } = props
-
-    return (
-        <div
-            ref={ref}
-            className={clsx(
-                css`
-                    display: flex;
-                    flex-direction: column;
-                    flex: none;
-                `,
-                className
-            )}
-            {...others}
-        />
     )
 })
