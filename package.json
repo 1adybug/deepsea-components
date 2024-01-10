@@ -30,7 +30,7 @@
     "dependencies": {
         "@emotion/css": "^11.11.2",
         "clsx": "^2.1.0",
-        "deepsea-tools": "^1.17.0",
+        "deepsea-tools": "^1.17.1",
         "smooth-scrollbar": "^8.8.4",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
     },
