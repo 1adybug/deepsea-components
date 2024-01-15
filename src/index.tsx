@@ -55,7 +55,10 @@ export type InputFileProps = (
           onChange?: (data: InputFileData<File>[]) => void
       }
 ) &
-    Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "multiple" | "type">
+    Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "multiple" | "type"> & {
+        /** 是否在捕获文件后清除 input 上的文件，默认为 false，主要区别在于如果不清除，连续两次选择同样的文件不会触发 onChange 事件，如果用于 form 表单，请设置为 flase */
+        clearAfterChange?: boolean
+    }
 
 export async function getFileData<T extends InputFileDataType>(file: File, type: T): Promise<InputFileDataTypes[T]> {
     const fileReader = new FileReader()
@@ -82,9 +85,9 @@ export async function getFileData<T extends InputFileDataType>(file: File, type:
     })
 }
 
-/** 专用与读取文件的组件 */
+/** 专用于读取文件的组件 */
 export const InputFile = forwardRef<HTMLInputElement, InputFileProps>((props, ref) => {
-    const { multiple = false, type = "file", onChange, disabled: inputDisabled, ...others } = props
+    const { multiple = false, type = "file", onChange, disabled: inputDisabled, clearAfterChange, ...others } = props
     const [disabled, setDisabled] = useState(false)
 
     async function onInputChange(e: ChangeEvent<HTMLInputElement>) {
@@ -109,10 +112,10 @@ export const InputFile = forwardRef<HTMLInputElement, InputFileProps>((props, re
                 } as any)
             }
             setDisabled(false)
-            input.value = ""
+            if (clearAfterChange) input.value = ""
         } catch (error) {
             setDisabled(false)
-            input.value = ""
+            if (clearAfterChange) input.value = ""
             throw error
         }
     }
