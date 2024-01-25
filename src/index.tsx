@@ -4,6 +4,7 @@ import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAtt
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
+import "./index.css"
 
 export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 
