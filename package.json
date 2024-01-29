@@ -4,6 +4,7 @@
     "description": "格数科技自用组件库",
     "main": "dist/cjs/index.js",
     "module": "dist/esm/index.js",
+    "types": "dist/esm/index.d.ts",
     "scripts": {
         "dev": "father dev",
         "build": "father build",
@@ -20,8 +21,8 @@
     ],
     "license": "MIT",
     "files": [
-        "dist",
         "compiled",
+        "dist",
         "src"
     ],
     "publishConfig": {
@@ -34,11 +35,11 @@
         "smooth-scrollbar": "^8.8.4",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
     },
-    "peerDependencies": {
-        "react": ">=18.2.0"
-    },
     "devDependencies": {
         "@types/react": "^18.2.37",
         "father": "^4.3.7"
+    },
+    "peerDependencies": {
+        "react": ">=16.8.0"
     }
 }

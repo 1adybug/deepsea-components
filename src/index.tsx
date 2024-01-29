@@ -1,6 +1,6 @@
 import { css } from "@emotion/css"
-import { DrawArcOptions, drawArc, setFrameInterval, clsx } from "deepsea-tools"
-import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react"
+import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
+import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
@@ -760,15 +760,17 @@ export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
 export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
     const { children, containerClassName, containerStyle, options, className, ...others } = props
     const { thumbWidth, ...scrollbarOptions } = options || {}
-    const id = useId()
+    const ele = useRef<HTMLDivElement>(null)
+
+    useImperativeHandle(ref, () => ele.current!)
 
     useEffect(() => {
-        SmoothScrollBar.init(document.querySelector(`[data-scroll-id="${id}"]`)!, scrollbarOptions)
+        SmoothScrollBar.init(ele.current!, scrollbarOptions)
     }, [])
 
     return (
         <div
-            ref={ref}
+            ref={ele}
             className={clsx(
                 !!thumbWidth &&
                     css`
@@ -790,11 +792,31 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
                     `,
                 className
             )}
-            data-scroll-id={id}
             {...others}>
             <div className={containerClassName} style={containerStyle}>
                 {children}
             </div>
         </div>
     )
+})
+
+export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>((props, ref) => {
+    const { style = {}, ...others } = props
+    const { height, resize, overflow, ...otherStyle } = style
+    const ele = useRef<HTMLTextAreaElement>(null)
+
+    useImperativeHandle(ref, () => ele.current!)
+
+    useEffect(() => {
+        const textarea = ele.current!
+        function resizeTextarea() {
+            textarea.style.height = "auto"
+            textarea.style.height = `${textarea.scrollHeight}px`
+        }
+        textarea.addEventListener("input", resizeTextarea)
+
+        return () => textarea.removeEventListener("input", resizeTextarea)
+    }, [])
+
+    return <textarea ref={ele} style={{ ...otherStyle, resize: "none", overflow: "auto" }} {...others} />
 })
