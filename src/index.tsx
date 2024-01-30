@@ -802,7 +802,7 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
 
 export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>((props, ref) => {
     const { style = {}, ...others } = props
-    const { height, resize, overflow, ...otherStyle } = style
+    const { height, resize, overflowY, ...otherStyle } = style
     const ele = useRef<HTMLTextAreaElement>(null)
 
     useImperativeHandle(ref, () => ele.current!)
@@ -811,12 +811,12 @@ export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttr
         const textarea = ele.current!
         function resizeTextarea() {
             textarea.style.height = "auto"
-            textarea.style.height = `${textarea.scrollHeight}px`
+            textarea.style.height = `${textarea.scrollHeight + textarea.offsetHeight - textarea.clientHeight}px`
         }
         textarea.addEventListener("input", resizeTextarea)
 
         return () => textarea.removeEventListener("input", resizeTextarea)
     }, [])
 
-    return <textarea ref={ele} style={{ ...otherStyle, resize: "none", overflow: "auto" }} {...others} />
+    return <textarea ref={ele} style={{ ...otherStyle, resize: "none", overflowY: "hidden" }} {...others} />
 })
