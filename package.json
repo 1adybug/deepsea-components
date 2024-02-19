@@ -31,13 +31,13 @@
     },
     "dependencies": {
         "@emotion/css": "^11.11.2",
-        "deepsea-tools": "^1.18.0",
+        "deepsea-tools": "^1.19.0",
         "smooth-scrollbar": "^8.8.4",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
     },
     "devDependencies": {
-        "@types/react": "^18.2.37",
-        "father": "^4.3.7"
+        "@types/react": "^18.2.56",
+        "father": "^4.4.0"
     },
     "peerDependencies": {
         "react": ">=16.8.0"

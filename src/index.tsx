@@ -1,6 +1,6 @@
 import { css } from "@emotion/css"
 import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
-import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
+import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, DetailedHTMLProps, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
@@ -501,111 +501,96 @@ export const Trapezium = forwardRef<HTMLDivElement, TrapeziumProps>((props, ref)
     return <div ref={ref} style={{ width: bottom, height, clipPath: `path("M ${diff + f} ${0}  A ${borderRadius} ${borderRadius} 0 0 0 ${diff - g} ${h} L ${c} ${height - d} A ${borderRadius} ${borderRadius} 0 0 0 ${b} ${height} L ${bottom - b} ${height} A ${borderRadius} ${borderRadius} 0 0 0 ${bottom - c} ${height - d} L ${top + diff + g} ${h} A ${borderRadius} ${borderRadius} 0 0 0 ${top + diff - f} ${0} Z")`, ...style }} {...other} />
 })
 
-export interface LoopSwiperProps<T> {
-    /** 源数据 */
-    data: T[]
-    /** 渲染函数 */
-    render: (item: T, index: number, array: T[]) => ReactNode
-    /** 每个元素的key */
-    keyExactor?: (item: T, index: number, array: T[]) => string
-    /** 水平方向是宽度，垂直方向是高度 */
-    size: number
-    /** 元素之间间隔 */
-    gap?: number
-    /** 起始位置 */
-    start?: number
-    /** 速度，水平方向正数为向左，水平方向负数为向右，垂直方向正数为向上，水平方向负数为向下 */
-    speed: number
-    /** 是否暂停播放 */
-    paused?: boolean
-    /** 容器的类名 */
-    className?: string
-    /** x 水平方向，y 垂直方向 */
-    direction?: "x" | "y"
+export interface LoopSwiperProps extends HTMLAttributes<HTMLDivElement> {
+    direction?: "horizontal" | "vertical"
+    reverse?: boolean
+    period: number
+    gap?: CSSProperties["gap"]
 }
 
-export interface LoopSwiperItem {
-    key: string
-    dom: HTMLDivElement | null
-    offset: number
-}
+css`
+    @keyframes deepsea-horizontal-loop-swipe {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-100%);
+        }
+    }
+    @keyframes deepsea-reverse-horizontal-loop-swipe {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(100%);
+        }
+    }
+    @keyframes deepsea-vertical-loop-swipe {
+        from {
+            transform: translateY(0);
+        }
+        to {
+            transform: translateY(-100%);
+        }
+    }
+    @keyframes deepsea-reverse-vertical-loop-swipe {
+        from {
+            transform: translateY(0);
+        }
+        to {
+            transform: translateY(100%);
+        }
+    }
+`
 
 /** 循环播放组件 */
-export function LoopSwiper<T>(props: LoopSwiperProps<T>) {
-    const { data, render, keyExactor, size, gap = 0, start = 0, speed, paused = false, className = "", direction = "x" } = props
-    if (!(size > 0 && (speed > 0 || speed < 0))) {
-        throw new RangeError("size 必须是正数，speed 必须非0")
-    }
-    const keys = data.map((it, idx, arr) => (keyExactor ? keyExactor(it, idx, arr) : String(idx)))
-    const keysRef = useRef(keys)
-    const cache = useRef({ size, gap, speed, keys, paused, className, direction })
-    cache.current = { size, gap, speed, keys, paused, className, direction }
-    const eles = useRef<LoopSwiperItem[]>(keys.map((key, idx) => ({ key, dom: null, offset: idx * (size + gap) + start })))
+export const LoopSwiper = forwardRef<HTMLDivElement, LoopSwiperProps>((props, ref) => {
+    const { style, children, direction, period, reverse, gap, ...others } = props
+    const wrapper = useRef<HTMLDivElement>(null)
+    const container = useRef<HTMLDivElement>(null)
+    const [swiper, setSwiper] = useState(false)
+    const directionRef = useRef(direction)
+    directionRef.current = direction
+    const flexDirection: CSSProperties["flexDirection"] = direction === "vertical" ? (reverse ? "column-reverse" : "column") : reverse ? "row-reverse" : "row"
+    const animationName = swiper ? (direction === "vertical" ? (reverse ? "deepsea-reverse-vertical-loop-swipe" : "deepsea-vertical-loop-swipe") : reverse ? "deepsea-reverse-horizontal-loop-swipe" : "deepsea-horizontal-loop-swipe") : "none"
+    const animationDuration = `${period}ms`
+    const animationTimingFunction = "linear"
+    const animationIterationCount = "infinite"
 
-    if (keysRef.current.length !== keys.length || keysRef.current.some((it, idx) => it !== keys[idx])) {
-        keysRef.current = keys
-        eles.current = keys.map((key, idx) => ({ key, dom: null, offset: idx * (size + gap) + start }))
-    }
+    useImperativeHandle(ref, () => wrapper.current!)
 
-    function setStyles() {
-        const { size, speed, className, direction } = cache.current
-        eles.current.forEach(it => {
-            it.dom!.className = className
-            it.dom!.style.setProperty("position", `absolute`)
-            it.dom!.style.setProperty("width", `${size}px`)
-            direction === "x" && speed < 0 ? it.dom!.style.setProperty("right", `0`) : it.dom!.style.setProperty("left", `0`)
-            direction === "y" && speed < 0 ? it.dom!.style.setProperty("bottom", `0`) : it.dom!.style.setProperty("top", `0`)
-            it.dom!.style.setProperty("transform", `translate${direction.toUpperCase()}(${it.offset * (speed > 0 ? 1 : -1)}px)`)
+    useEffect(() => {
+        const wrapperEle = wrapper.current!
+        const containerEle = container.current!
+        let wrapperWidth = 0
+        let wrapperHeight = 0
+        let containerWidth = 0
+        let containerHeight = 0
+        const observer = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.target === wrapperEle) {
+                    wrapperWidth = entry.contentRect.width
+                    wrapperHeight = entry.contentRect.height
+                } else if (entry.target === containerEle) {
+                    containerWidth = entry.contentRect.width
+                    containerHeight = entry.contentRect.height
+                }
+            })
+            setSwiper(directionRef.current === "vertical" ? containerHeight > wrapperHeight : containerWidth > wrapperWidth)
         })
-    }
-
-    useEffect(() => {
-        setStyles()
+        observer.observe(wrapperEle)
+        observer.observe(containerEle)
     }, [])
-
-    useEffect(() => {
-        const stop = setFrameInterval(() => {
-            const { size, gap, speed, keys, paused } = cache.current
-            if (paused) return
-            eles.current.length = keys.length
-            let minIndex = 0
-            eles.current.forEach((it, idx) => {
-                if (it.offset < eles.current[minIndex].offset) {
-                    minIndex = idx
-                }
-            })
-            const minOffset = eles.current[minIndex].offset
-            eles.current.forEach((it, idx) => {
-                let index = idx
-                if (idx < minIndex) index = eles.current.length + idx
-                it.offset = minOffset + (index - minIndex) * (size + gap)
-                let newOffset = it.offset - Math.abs(speed)
-                if (newOffset + size + gap <= 0) {
-                    newOffset += eles.current.length * (size + gap)
-                }
-                it.offset = newOffset
-            })
-            setStyles()
-        }, 1)
-
-        return stop
-    }, [])
-
-    function ref(dom: HTMLDivElement | null, index: number) {
-        if (!eles.current[index]) return
-        eles.current[index].dom = dom
-    }
 
     return (
-        <Fragment>
-            {data.map((it, idx, arr) => (
-                <div key={keys[idx]} ref={dom => ref(dom, idx)}>
-                    {render(it, idx, arr)}
-                </div>
-            ))}
-        </Fragment>
+        <div ref={wrapper} style={{ display: "flex", flexDirection, gap, ...style }} {...others}>
+            <div ref={container} style={{ display: "flex", flexDirection, gap, animationName, animationTimingFunction, animationDuration, animationIterationCount }}>
+                {children}
+            </div>
+            <div style={{ display: swiper ? "flex" : "none", flexDirection, gap, animationName, animationTimingFunction, animationDuration, animationIterationCount }}>{children}</div>
+        </div>
     )
-}
+})
 
 export interface SectionRingProps extends HTMLAttributes<HTMLDivElement> {
     outerRadius: number

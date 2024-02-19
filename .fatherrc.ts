@@ -3,6 +3,9 @@ import { defineConfig } from "father"
 export default defineConfig({
     esm: {},
     cjs: {},
-    targets: { chrome: 90, node: 18 },
+    targets: {
+        node: 18,
+        chrome: 100
+    },
     sourcemap: true
 })

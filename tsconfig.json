@@ -5,6 +5,8 @@
         "skipLibCheck": true,
         "baseUrl": "./",
         "jsx": "react-jsx",
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "target": "ESNext",
+        "moduleResolution": "Bundler"
     }
 }
