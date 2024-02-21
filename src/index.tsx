@@ -126,6 +126,29 @@ export interface ImportExcelProps extends Omit<InputFileProps, "multiple" | "onC
     onChange?: (data: Record<string, string>[]) => void
 }
 
+export type InputFileButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    input: InputFileProps
+}
+
+/** 专用于读取文件的 button 组件 */
+export const InputFileButton = forwardRef<HTMLButtonElement, InputFileButtonProps>((props, ref) => {
+    const { onClick, children, input: inputProps, ...others } = props
+    const { style, ...otherInputProps } = inputProps
+    const input = useRef<HTMLInputElement>(null)
+
+    function onBtnClick(e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) {
+        input.current?.click()
+        onClick?.(e)
+    }
+
+    return (
+        <button ref={ref} type="button" onClick={onBtnClick} {...others}>
+            <InputFile ref={input} style={{ display: "none", ...style }} {...otherInputProps} />
+            {children}
+        </button>
+    )
+})
+
 /** 专门用于读取 excel 的组件 */
 export const ImportExcel = forwardRef<HTMLInputElement, ImportExcelProps>((props, ref) => {
     const { onChange, ...others } = props
