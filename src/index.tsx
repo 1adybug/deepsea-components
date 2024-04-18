@@ -1,11 +1,10 @@
+"use client"
 import { css } from "@emotion/css"
 import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
 import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
-
-export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 
 export interface InputFileDataTypes {
     base64: string
@@ -822,8 +821,12 @@ export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttr
             textarea.style.height = `${textarea.scrollHeight + textarea.offsetHeight - textarea.clientHeight}px`
         }
         textarea.addEventListener("input", resizeTextarea)
+        textarea.addEventListener("change", resizeTextarea)
 
-        return () => textarea.removeEventListener("input", resizeTextarea)
+        return () => {
+            textarea.removeEventListener("input", resizeTextarea)
+            textarea.removeEventListener("change", resizeTextarea)
+        }
     }, [])
 
     return <textarea ref={ele} style={{ ...otherStyle, resize: "none", overflowY: "hidden" }} {...others} />
