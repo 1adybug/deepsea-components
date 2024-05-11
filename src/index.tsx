@@ -859,7 +859,7 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
     }, [ele.current?.parentElement])
     if (!size) return <div ref={ele} style={{ display: "none" }} />
     const scale = Math.min(size.width / width, size.height / height)
-    const translateX = (width - size.width) / 2
-    const translateY = (height - size.height) / 2
-    return <div ref={ele} style={{ transform: `scale(${scale}) translateX(-${translateX}px) translateY(-${translateY}px)`, width, height, ...style }} {...rest} />
+    const translateX = -(width - size.width) / 2
+    const translateY = -(height - size.height) / 2
+    return <div ref={ele} style={{ transform: `scale(${scale}) translateX(${translateX}px) translateY(${translateY}px)`, width, height, ...style }} {...rest} />
 })
