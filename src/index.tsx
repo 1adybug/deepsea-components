@@ -851,5 +851,5 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
     const currentHeight = height * scale
     const translateX = (size.width - currentWidth) / 2
     const translateY = (size.height - currentHeight) / 2
-    return <div ref={setEle} style={{ position: "relative", transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, ...style }} {...rest} />
+    return <div ref={setEle} style={{ position: "relative", transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, width, height, ...style }} {...rest} />
 })
