@@ -842,17 +842,14 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
 
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
     const { width = 1920, height = 1080, style, ...rest } = props
-    const ele = useRef<HTMLDivElement>(null)
-    useImperativeHandle(ref, () => ele.current!)
-    console.log(ele.current)
-    console.log(ele.current?.parentElement)
-    const size = useSize(ele.current?.parentElement)
-    console.log(size)
-    if (!size) return <div ref={ele} style={{ display: "none" }} />
+    const [ele, setEle] = useState<HTMLDivElement | null>(null)
+    useImperativeHandle(ref, () => ele!, [ele])
+    const size = useSize(ele?.parentElement)
+    if (!size) return <div ref={setEle} style={{ display: "none" }} />
     const scale = Math.min(size.width / width, size.height / height)
     const currentWidth = width * scale
     const currentHeight = height * scale
     const translateX = (size.width - currentWidth) / 2
     const translateY = (size.height - currentHeight) / 2
-    return <div ref={ele} style={{ position: "relative", transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, ...style }} {...rest} />
+    return <div ref={setEle} style={{ position: "relative", transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, ...style }} {...rest} />
 })
