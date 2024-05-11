@@ -844,7 +844,10 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
     const { width = 1920, height = 1080, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
     useImperativeHandle(ref, () => ele.current!)
+    console.log(ele.current)
+    console.log(ele.current?.parentElement)
     const size = useSize(ele.current?.parentElement)
+    console.log(size)
     if (!size) return <div ref={ele} style={{ display: "none" }} />
     const scale = Math.min(size.width / width, size.height / height)
     const currentWidth = width * scale
