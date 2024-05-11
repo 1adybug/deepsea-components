@@ -842,14 +842,22 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
 
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
     const { width = 1920, height = 1080, style, ...rest } = props
-    const [ele, setEle] = useState<HTMLDivElement | null>(null)
-    useImperativeHandle(ref, () => ele!, [ele])
-    const size = useSize(ele?.parentElement)
-    if (!size) return <div ref={setEle} style={{ display: "none" }} />
+    const ele = useRef<HTMLDivElement>(null)
+    const [size, setSize] = useState<{ width: number; height: number } | undefined>(undefined)
+    useImperativeHandle(ref, () => ele.current!, [ele.current])
+    useEffect(() => {
+        const parent = ele.current?.parentElement
+        if (!parent) return
+        function listener(entries: ResizeObserverEntry[]) {
+            const entry = entries[0]
+            const { width, height } = entry.contentRect
+            setSize({ width, height })
+        }
+        const observer = new ResizeObserver(listener)
+        observer.observe(parent)
+        return () => observer.disconnect()
+    }, [ele.current?.parentElement])
+    if (!size) return <div ref={ele} style={{ display: "none" }} />
     const scale = Math.min(size.width / width, size.height / height)
-    const currentWidth = width * scale
-    const currentHeight = height * scale
-    const translateX = (size.width - currentWidth) / 2
-    const translateY = (size.height - currentHeight) / 2
-    return <div ref={setEle} style={{ position: "relative", transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, width, height, ...style }} {...rest} />
+    return <div ref={ele} style={{ position: "relative", transform: `scale(${scale})`, width, height, ...style }} {...rest} />
 })
