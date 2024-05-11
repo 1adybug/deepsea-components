@@ -1,5 +1,6 @@
 "use client"
 import { css } from "@emotion/css"
+import { useSize } from "ahooks"
 import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
 import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
@@ -830,4 +831,25 @@ export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttr
     }, [])
 
     return <textarea ref={ele} style={{ ...otherStyle, resize: "none", overflowY: "hidden" }} {...others} />
+})
+
+export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
+    /** 设计稿宽度，默认 1920 */
+    width?: number
+    /** 设计稿高度，默认 1080 */
+    height?: number
+}
+
+export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
+    const { width = 1920, height = 1080, style, ...rest } = props
+    const ele = useRef<HTMLDivElement>(null)
+    useImperativeHandle(ref, () => ele.current!)
+    const size = useSize(ele.current?.parentElement)
+    if (!size) return <div ref={ele} style={{ display: "none" }} />
+    const scale = Math.min(size.width / width, size.height / height)
+    const currentWidth = width * scale
+    const currentHeight = height * scale
+    const translateX = (size.width - currentWidth) / 2
+    const translateY = (size.height - currentHeight) / 2
+    return <div ref={ele} style={{ transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`, ...style }} {...rest} />
 })
