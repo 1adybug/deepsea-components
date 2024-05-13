@@ -1,8 +1,7 @@
 "use client"
 import { css } from "@emotion/css"
-import { useSize } from "ahooks"
 import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
-import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
+import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
 import SmoothScrollBar from "smooth-scrollbar"
 import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
@@ -843,23 +842,21 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
     const { width = 1920, height = 1080, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
-    const [size, setSize] = useState<{ width: number; height: number } | undefined>(undefined)
     useImperativeHandle(ref, () => ele.current!, [ele.current])
-    useEffect(() => {
-        const parent = ele.current?.parentElement
-        if (!parent) return
+    useLayoutEffect(() => {
+        const element = ele.current
+        const parent = element?.parentElement
+        if (!element || !parent) return
         function listener(entries: ResizeObserverEntry[]) {
             const entry = entries[0]
-            const { width, height } = entry.contentRect
-            setSize({ width, height })
+            const { contentRect } = entry
+            const scale = Math.min(contentRect.width / width, contentRect.height / height)
+            element?.style.setProperty("--scale", scale.toString())
         }
         const observer = new ResizeObserver(listener)
         observer.observe(parent)
         return () => observer.disconnect()
-    }, [ele.current?.parentElement])
-    if (!size) return <div ref={ele} style={{ display: "none" }} />
-    const scale = Math.min(size.width / width, size.height / height)
-    const translateX = -(width - size.width) / 2
-    const translateY = -(height - size.height) / 2
-    return <div ref={ele} style={{ transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale})`, width, height, ...style }} {...rest} />
+    }, [ele.current?.parentElement, width, height])
+
+    return <div ref={ele} style={{ position: "absolute", left: "50%", top: "50%", transform: `translateX(-50%) translateY(-50%) scale(var(--scale))`, width, height, ...style }} {...rest} />
 })
