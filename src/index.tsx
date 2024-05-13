@@ -869,19 +869,28 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
             const { contentRect } = entry
             if (direction === "horizontal") {
                 const scale = contentRect.width / width
-                element?.style.setProperty("--scale", `${scale}`)
+                element?.style.setProperty("--left", "0")
+                element?.style.setProperty("--top", "0")
+                element?.style.setProperty("--transform-origin", "top left")
+                element?.style.setProperty("--transform", `scale(${scale})`)
                 element?.style.setProperty("--width", `${width}px`)
                 element?.style.setProperty("--height", `${height * scale}px`)
                 return
             } else if (direction === "vertical") {
                 const scale = contentRect.height / height
-                element?.style.setProperty("--scale", `${scale}`)
+                element?.style.setProperty("--left", "0")
+                element?.style.setProperty("--top", "0")
+                element?.style.setProperty("--transform-origin", "top left")
+                element?.style.setProperty("--transform", `scale(${scale})`)
                 element?.style.setProperty("--width", `${width * scale}px`)
                 element?.style.setProperty("--height", `${height}px`)
                 return
             } else {
                 const scale = Math.min(contentRect.width / width, contentRect.height / height)
-                element?.style.setProperty("--scale", scale.toString())
+                element?.style.setProperty("--left", "0")
+                element?.style.setProperty("--top", "0")
+                element?.style.setProperty("--transform-origin", "center")
+                element?.style.setProperty("--transform", `translateX(-50%) translateY(-50%) scale(${scale})`)
                 element?.style.setProperty("--width", `${width}px`)
                 element?.style.setProperty("--height", `${height}px`)
             }
@@ -894,5 +903,5 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
 
     if (!show) return <div ref={ele} style={{ display: "none" }} />
 
-    return <div ref={ele} style={{ position: "absolute", left: "50%", top: "50%", transform: `translateX(-50%) translateY(-50%) scale(var(--scale))`, width: `var(--width)`, height: `var(--height)`, ...style }} {...rest} />
+    return <div ref={ele} style={{ position: "absolute", left: `var(--left)`, top: `var(--top)`, transform: `var(--transform)`, transformOrigin: `var(--transform-origin)`, width: `var(--width)`, height: `var(--height)`, ...style }} {...rest} />
 })
