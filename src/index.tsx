@@ -875,7 +875,6 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
                 element?.style.setProperty("--transform", `scale(${scale})`)
                 element?.style.setProperty("--width", `${width}px`)
                 element?.style.setProperty("--height", `${height * scale}px`)
-                return
             } else if (direction === "vertical") {
                 const scale = contentRect.height / height
                 element?.style.setProperty("--left", "0")
@@ -884,11 +883,10 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
                 element?.style.setProperty("--transform", `scale(${scale})`)
                 element?.style.setProperty("--width", `${width * scale}px`)
                 element?.style.setProperty("--height", `${height}px`)
-                return
             } else {
                 const scale = Math.min(contentRect.width / width, contentRect.height / height)
-                element?.style.setProperty("--left", "0")
-                element?.style.setProperty("--top", "0")
+                element?.style.setProperty("--left", "50%")
+                element?.style.setProperty("--top", "50%")
                 element?.style.setProperty("--transform-origin", "center")
                 element?.style.setProperty("--transform", `translateX(-50%) translateY(-50%) scale(${scale})`)
                 element?.style.setProperty("--width", `${width}px`)
