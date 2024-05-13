@@ -842,6 +842,7 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
     const { width = 1920, height = 1080, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
+    const [show, setShow] = useState(false)
     useImperativeHandle(ref, () => ele.current!, [ele.current])
     useLayoutEffect(() => {
         const element = ele.current
@@ -852,11 +853,14 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
             const { contentRect } = entry
             const scale = Math.min(contentRect.width / width, contentRect.height / height)
             element?.style.setProperty("--scale", scale.toString())
+            setShow(true)
         }
         const observer = new ResizeObserver(listener)
         observer.observe(parent)
         return () => observer.disconnect()
     }, [ele.current?.parentElement, width, height])
+
+    if (!show) return <div ref={ele} style={{ display: "none" }} />
 
     return <div ref={ele} style={{ position: "absolute", left: "50%", top: "50%", transform: `translateX(-50%) translateY(-50%) scale(var(--scale))`, width, height, ...style }} {...rest} />
 })
