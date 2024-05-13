@@ -839,6 +839,15 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
     height?: number
 }
 
+/** 
+ * 自适应缩放组件
+ * 
+ * 注意：
+ * 1. 父元素必须设置 position: relative 或者其他非 static 的 position
+ * 2. 不要设置元素的 position、left、top、transform 属性
+ * 3. 元素的属性、事件、资源并不是立即加载的，会有一帧的延迟，在第一次完成缩放后才会显示
+ * 4. 在第一次完成缩放前，无论 props 是什么，返回的都是 <div style={{ display: "none" }} />
+ */
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
     const { width = 1920, height = 1080, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
