@@ -837,11 +837,18 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
     width?: number
     /** 设计稿高度，默认 1080 */
     height?: number
+    /** 在哪些方向进行缩放，默认缩放所有方向
+     *
+     * 1. 水平方向是指，宽度按照设计稿进行占满，高度反向缩放
+     * 2. 垂直方向是指，高度按照设计稿进行占满，宽度反向缩放
+     * 3. 默认是水平和垂直方向都进行缩放，类似于 background-size: contain 的效果
+     */
+    direction?: "horizontal" | "vertical" | "both"
 }
 
-/** 
+/**
  * 自适应缩放组件
- * 
+ *
  * 注意：
  * 1. 父元素必须设置 position: relative 或者其他非 static 的 position
  * 2. 不要设置元素的 position、left、top、transform 属性
@@ -849,7 +856,7 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
  * 4. 在第一次完成缩放前，无论 props 是什么，返回的都是 <div style={{ display: "none" }} />
  */
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
-    const { width = 1920, height = 1080, style, ...rest } = props
+    const { width = 1920, height = 1080, direction, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
     const [show, setShow] = useState(false)
     useImperativeHandle(ref, () => ele.current!, [ele.current])
@@ -860,16 +867,32 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
         function listener(entries: ResizeObserverEntry[]) {
             const entry = entries[0]
             const { contentRect } = entry
-            const scale = Math.min(contentRect.width / width, contentRect.height / height)
-            element?.style.setProperty("--scale", scale.toString())
+            if (direction === "horizontal") {
+                const scale = contentRect.width / width
+                element?.style.setProperty("--scale", `${scale}`)
+                element?.style.setProperty("--width", `${width}px`)
+                element?.style.setProperty("--height", `${height * scale}px`)
+                return
+            } else if (direction === "vertical") {
+                const scale = contentRect.height / height
+                element?.style.setProperty("--scale", `${scale}`)
+                element?.style.setProperty("--width", `${width * scale}px`)
+                element?.style.setProperty("--height", `${height}px`)
+                return
+            } else {
+                const scale = Math.min(contentRect.width / width, contentRect.height / height)
+                element?.style.setProperty("--scale", scale.toString())
+                element?.style.setProperty("--width", `${width}px`)
+                element?.style.setProperty("--height", `${height}px`)
+            }
             setShow(true)
         }
         const observer = new ResizeObserver(listener)
         observer.observe(parent)
         return () => observer.disconnect()
-    }, [ele.current?.parentElement, width, height])
+    }, [ele.current?.parentElement, width, height, direction])
 
     if (!show) return <div ref={ele} style={{ display: "none" }} />
 
-    return <div ref={ele} style={{ position: "absolute", left: "50%", top: "50%", transform: `translateX(-50%) translateY(-50%) scale(var(--scale))`, width, height, ...style }} {...rest} />
+    return <div ref={ele} style={{ position: "absolute", left: "50%", top: "50%", transform: `translateX(-50%) translateY(-50%) scale(var(--scale))`, width: `var(--width)`, height: `var(--height)`, ...style }} {...rest} />
 })
