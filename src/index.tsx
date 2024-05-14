@@ -879,7 +879,7 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
                 element?.style.setProperty("--height", `${height}px`)
             } else {
                 const scale = Math.min(contentRect.width / width, contentRect.height / height)
-                element?.style.setProperty("--transform", `translateX(${(contentRect.width - width) / 2}px) translateY(${(contentRect.height - height) / 2}px) scale(${scale})`)
+                element?.style.setProperty("--transform", `translateX(${(contentRect.width - width * scale) / 2}px) translateY(${(contentRect.height - height * scale) / 2}px) scale(${scale})`)
                 element?.style.setProperty("--width", `${width}px`)
                 element?.style.setProperty("--height", `${height}px`)
             }
