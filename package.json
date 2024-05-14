@@ -1,6 +1,6 @@
 {
     "name": "deepsea-components",
-    "version": "2.5.7-beta.20240513153258",
+    "version": "2.5.7-beta.20240514091728",
     "description": "格数科技自用组件库",
     "main": "dist/cjs/index.js",
     "module": "dist/esm/index.js",
