@@ -1,12 +1,12 @@
 import { css } from "@emotion/css"
 import { useSize } from "ahooks"
 import { clsx, getArray } from "deepsea-tools"
-import { CSSProperties, FC, MouseEvent as ReactMouseEvent, useEffect, useRef } from "react"
+import { CSSProperties, forwardRef, MouseEvent as ReactMouseEvent, useEffect, useImperativeHandle, useRef } from "react"
 import Scrollbar from "smooth-scrollbar"
 import { ScrollStatus } from "smooth-scrollbar/interfaces/scrollbar"
 import { Scroll, ScrollProps } from "./Scroll"
 
-export interface SwiperScrollProps extends Omit<ScrollProps, "scrollbar"> {
+export interface AutoScrollProps extends ScrollProps {
     /** 轮播的数据 */
     count: number
 
@@ -32,13 +32,16 @@ export interface SwiperScrollProps extends Omit<ScrollProps, "scrollbar"> {
     playOnMouseEnter?: boolean
 }
 
-export const AutoScroll: FC<SwiperScrollProps> = props => {
-    const { count, itemHeight, animation, duration, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, ...rest } = props
+export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, ref) => {
+    const { count, itemHeight, animation, duration, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, scrollbar, ...rest } = props
     const bar = useRef<Scrollbar | null>(null)
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined)
     const ele = useRef<HTMLDivElement>(null)
     const size = useSize(ele)
     const pause = useRef(false)
+
+    useImperativeHandle(ref, () => ele.current!, [])
+    useImperativeHandle(scrollbar, () => bar.current!, [])
 
     useEffect(() => {
         if (playOnMouseEnter) pause.current = false
@@ -103,4 +106,4 @@ export const AutoScroll: FC<SwiperScrollProps> = props => {
             </div>
         </Scroll>
     )
-}
+})

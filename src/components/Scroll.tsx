@@ -1,6 +1,6 @@
 import { css } from "@emotion/css"
 import { clsx } from "deepsea-tools"
-import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useRef } from "react"
+import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useLayoutEffect, useRef } from "react"
 import Scrollbar from "smooth-scrollbar"
 import type { ScrollbarOptions, ScrollListener } from "smooth-scrollbar/interfaces"
 export { default as Scrollbar } from "smooth-scrollbar"
@@ -26,22 +26,14 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
     const ele = useRef<HTMLDivElement>(null)
     const bar = useRef<Scrollbar | null>(null)
 
-    useImperativeHandle(ref, () => ele.current!, [])
-
-    useEffect(() => {
+    useLayoutEffect(() => {
         bar.current = Scrollbar.init(ele.current!, scrollbarOptions)
         return () => bar.current?.destroy()
     }, [])
 
-    useEffect(() => {
-        if (!scrollbar) return
-        if (typeof scrollbar === "function") {
-            scrollbar(bar.current)
-            return () => scrollbar(null)
-        }
-        scrollbar.current = bar.current
-        return () => (scrollbar.current = null)
-    }, [scrollbar])
+    useImperativeHandle(ref, () => ele.current!, [])
+
+    useImperativeHandle(scrollbar, () => bar.current!, [])
 
     useEffect(() => {
         if (!onScrollbar) return
