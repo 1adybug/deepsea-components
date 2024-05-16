@@ -2,9 +2,9 @@ import { css } from "@emotion/css"
 import { clsx } from "deepsea-tools"
 import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useRef } from "react"
 import Scrollbar from "smooth-scrollbar"
-import type { ScrollbarOptions, ScrollStatus } from "smooth-scrollbar/interfaces"
+import type { ScrollbarOptions, ScrollListener } from "smooth-scrollbar/interfaces"
 export { default as Scrollbar } from "smooth-scrollbar"
-export type { ScrollbarOptions, ScrollStatus } from "smooth-scrollbar/interfaces"
+export * from "smooth-scrollbar/interfaces"
 
 export interface ScrollOptions extends Partial<ScrollbarOptions> {
     /** 滑块宽度 */
@@ -21,7 +21,7 @@ export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
     /** 滚动条实例 */
     scrollbar?: ForwardedRef<Scrollbar>
     /** 滚动条滚动事件 */
-    onScrollbar?: (status: ScrollStatus) => void
+    onScrollbar?: ScrollListener
 }
 
 /**
@@ -35,18 +35,21 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
     const bar = useRef<Scrollbar | null>(null)
 
     useImperativeHandle(ref, () => ele.current!, [])
-    useImperativeHandle(
-        scrollbar,
-        () => {
-            bar.current = Scrollbar.init(ele.current!, scrollbarOptions)
-            return bar.current
-        },
-        []
-    )
 
     useEffect(() => {
+        bar.current = Scrollbar.init(ele.current!, scrollbarOptions)
         return () => bar.current?.destroy()
     }, [])
+
+    useEffect(() => {
+        if (!scrollbar) return
+        if (typeof scrollbar === "function") {
+            scrollbar(bar.current)
+            return () => scrollbar(null)
+        }
+        scrollbar.current = bar.current
+        return () => (scrollbar.current = null)
+    }, [scrollbar])
 
     useEffect(() => {
         if (!onScrollbar) return
