@@ -26,8 +26,8 @@ export interface AutoScrollProps extends ScrollProps {
      */
     duration?: number
 
-    /** 
-     * 元素之间的间距 
+    /**
+     * 元素之间的间距
      * @default 0
      */
     gap?: number
@@ -38,26 +38,34 @@ export interface AutoScrollProps extends ScrollProps {
     /** 容器样式 */
     containerStyle?: CSSProperties
 
-    /** 
+    /**
      * 在鼠标移入时是否继续播放
      * @default false
      */
     playOnMouseEnter?: boolean
+
+    /**
+     * 是否暂停
+     * @default false
+     */
+    paused?: boolean
 }
 
 export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, ref) => {
-    const { count, itemHeight, animation = 1000, duration = 3000, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, scrollbar, ...rest } = props
+    const { count, itemHeight, animation = 1000, duration = 3000, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, scrollbar, paused, ...rest } = props
     const bar = useRef<Scrollbar | null>(null)
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined)
     const ele = useRef<HTMLDivElement>(null)
     const size = useSize(ele)
-    const pause = useRef(false)
+    const pausedRef = useRef(false)
+    const pausedProps = useRef(paused)
+    pausedProps.current = paused
 
     useImperativeHandle(ref, () => ele.current!, [])
     useImperativeHandle(scrollbar, () => bar.current!, [])
 
     useEffect(() => {
-        if (playOnMouseEnter) pause.current = false
+        if (playOnMouseEnter) pausedRef.current = false
     }, [playOnMouseEnter])
 
     useEffect(() => {
@@ -69,7 +77,7 @@ export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, re
         function scroll(target: number) {
             clearTimeout(timeout.current)
             timeout.current = setTimeout(() => {
-                if (pause.current) return scroll(target)
+                if (pausedRef.current || pausedProps.current) return scroll(target)
                 bar.current?.scrollTo(0, target, animation)
             }, duration)
         }
@@ -90,13 +98,13 @@ export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, re
 
     function onContainerMouseEnter(e: ReactMouseEvent<HTMLDivElement, MouseEvent>) {
         if (playOnMouseEnter) return
-        pause.current = true
+        pausedRef.current = true
         onMouseEnter?.(e)
     }
 
     function onContainerMouseLeave(e: ReactMouseEvent<HTMLDivElement, MouseEvent>) {
         if (playOnMouseEnter) return
-        pause.current = false
+        pausedRef.current = false
         onMouseLeave?.(e)
     }
 
