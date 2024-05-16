@@ -2,9 +2,10 @@
 import { css } from "@emotion/css"
 import { DrawArcOptions, clsx, drawArc, setFrameInterval } from "deepsea-tools"
 import { ButtonHTMLAttributes, CSSProperties, ChangeEvent, FC, Fragment, HTMLAttributes, InputHTMLAttributes, MouseEvent as ReactMouseEvent, ReactNode, TextareaHTMLAttributes, forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
-import SmoothScrollBar from "smooth-scrollbar"
-import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
 import { read, utils, writeFile } from "xlsx"
+
+export * from "./components/Scroll"
+export * from "./components/AutoScroll"
 
 export interface InputFileDataTypes {
     base64: string
@@ -745,67 +746,6 @@ export const CircleText: FC<CircleTextProps> = props => {
         </Fragment>
     )
 }
-
-export interface ScrollOptions extends Partial<ScrollbarOptions> {
-    /** 滑块宽度 */
-    thumbWidth?: number
-}
-
-export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
-    /** 滚动的配置 */
-    options?: ScrollOptions
-    /** 容器宽度 */
-    containerClassName?: string
-    /** 容器样式 */
-    containerStyle?: CSSProperties
-}
-
-/**
- * 滚动条组件
- * @description 注意 children 不是直接渲染在组件上的，而是渲染在内部的容器上
- */
-export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
-    const { children, containerClassName, containerStyle, options, className, ...others } = props
-    const { thumbWidth, ...scrollbarOptions } = options || {}
-    const ele = useRef<HTMLDivElement>(null)
-
-    useImperativeHandle(ref, () => ele.current!)
-
-    useEffect(() => {
-        SmoothScrollBar.init(ele.current!, scrollbarOptions)
-    }, [])
-
-    return (
-        <div
-            ref={ele}
-            className={clsx(
-                !!thumbWidth &&
-                    css`
-                        .scrollbar-track.scrollbar-track-x {
-                            height: ${thumbWidth}px;
-                        }
-
-                        .scrollbar-thumb.scrollbar-thumb-x {
-                            height: ${thumbWidth}px;
-                        }
-
-                        .scrollbar-track.scrollbar-track-y {
-                            width: ${thumbWidth}px;
-                        }
-
-                        .scrollbar-thumb.scrollbar-thumb-y {
-                            width: ${thumbWidth}px;
-                        }
-                    `,
-                className
-            )}
-            {...others}>
-            <div className={containerClassName} style={containerStyle}>
-                {children}
-            </div>
-        </div>
-    )
-})
 
 export const AutoSizeTextArea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>((props, ref) => {
     const { style = {}, ...others } = props
