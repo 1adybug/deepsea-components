@@ -14,22 +14,14 @@ export interface ScrollOptions extends Partial<ScrollbarOptions> {
 export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
     /** 滚动的配置 */
     options?: ScrollOptions
-    /** 容器宽度 */
-    containerClassName?: string
-    /** 容器样式 */
-    containerStyle?: CSSProperties
     /** 滚动条实例 */
     scrollbar?: ForwardedRef<Scrollbar>
     /** 滚动条滚动事件 */
     onScrollbar?: ScrollListener
 }
 
-/**
- * 滚动条组件
- * @description 注意 children 不是直接渲染在组件上的，而是渲染在内部的容器上
- */
 export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
-    const { children, containerClassName, containerStyle, options, className, style, scrollbar, onScrollbar, ...rest } = props
+    const { children, options, className, style, scrollbar, onScrollbar, ...rest } = props
     const { thumbWidth, ...scrollbarOptions } = options || {}
     const ele = useRef<HTMLDivElement>(null)
     const bar = useRef<Scrollbar | null>(null)
