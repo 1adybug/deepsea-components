@@ -39,8 +39,6 @@ export function AutoScroll<T>(props: SwiperScrollProps<T>) {
 
     const offsetRef = useLatest(offset)
 
-    const targetRef = useRef(0)
-
     const [paused, setPaused] = useState(false)
 
     const pausedRef = useLatest(paused)
@@ -54,30 +52,28 @@ export function AutoScroll<T>(props: SwiperScrollProps<T>) {
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined)
 
     useEffect(() => {
+        if (data.length <= count || paused === true) return
         function listener(status: ScrollStatus) {
             const y = status.offset.y
             const a = y / (itemHeight + gap)
-            if (a % 1 <= 0.05) {
-                targetRef.current = Math.floor(a)
-            } else {
-                targetRef.current = Math.ceil(a)
-            }
+            const newTarget = a % 1 <= 0.05 ? Math.floor(a) : Math.ceil(a)
             clearTimeout(timeout.current)
             timeout.current = setTimeout(() => {
-                setOffset(targetRef.current)
+                setOffset(offset => (newTarget === offset ? (offset + 1) % (data.length + 1 - count) : newTarget))
             }, periodRef.current)
         }
         bar.current?.addListener(listener)
         return () => {
+            clearTimeout(timeout.current)
             bar.current?.removeListener(listener)
         }
-    }, [])
+    }, [data.length, count, paused])
 
     useEffect(() => {
         if (data.length <= count || paused === true) return
-        targetRef.current = (offset + 1) % (data.length + 1 - count)
+        const newTarget = (offset + 1) % (data.length + 1 - count)
         timeout.current = setTimeout(() => {
-            setOffset(targetRef.current)
+            setOffset(newTarget)
         }, periodRef.current)
         return () => clearTimeout(timeout.current)
     }, [count, data.length, offset, paused])
