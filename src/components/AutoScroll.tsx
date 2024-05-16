@@ -1,3 +1,4 @@
+"use client"
 import { css } from "@emotion/css"
 import { useSize } from "ahooks"
 import { clsx, getArray } from "deepsea-tools"
