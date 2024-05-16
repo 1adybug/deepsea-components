@@ -2,8 +2,9 @@ import { HTMLAttributes, ReactNode, useEffect, useRef, useState, MouseEvent as R
 import Scrollbar from "smooth-scrollbar"
 import { ScrollStatus } from "smooth-scrollbar/interfaces/scrollbar"
 import { Scroll, ScrollOptions } from "./Scroll"
+import { useLatest } from "ahooks"
 
-export interface SwiperScrollProps<T> extends HTMLAttributes<HTMLDivElement> {
+export interface SwiperScrollProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
     count: number
 
     /** 轮播元素的长度 */
@@ -36,34 +37,34 @@ export function AutoScroll<T>(props: SwiperScrollProps<T>) {
 
     const [offset, setOffset] = useState(0)
 
+    const offsetRef = useLatest(offset)
+
+    const targetRef = useRef(0)
+
     const [paused, setPaused] = useState(false)
 
-    const pausedRef = useRef(paused)
+    const pausedRef = useLatest(paused)
 
-    pausedRef.current = paused
-
-    const periodRef = useRef(period)
-
-    periodRef.current = period
+    const periodRef = useLatest(period)
 
     const height = (itemHeight + gap) * count - gap
 
     const bar = useRef<Scrollbar | null>(null)
 
+    const timeout = useRef<NodeJS.Timeout | undefined>(undefined)
+
     useEffect(() => {
-        let timer: NodeJS.Timeout
-        const listener = (status: ScrollStatus) => {
+        function listener(status: ScrollStatus) {
             const y = status.offset.y
             const a = y / (itemHeight + gap)
-            let newOffset: number
             if (a % 1 <= 0.05) {
-                newOffset = Math.floor(a)
+                targetRef.current = Math.floor(a)
             } else {
-                newOffset = Math.ceil(a)
+                targetRef.current = Math.ceil(a)
             }
-            clearTimeout(timer)
-            timer = setTimeout(() => {
-                setOffset(newOffset)
+            clearTimeout(timeout.current)
+            timeout.current = setTimeout(() => {
+                setOffset(targetRef.current)
             }, periodRef.current)
         }
         bar.current?.addListener(listener)
@@ -74,10 +75,11 @@ export function AutoScroll<T>(props: SwiperScrollProps<T>) {
 
     useEffect(() => {
         if (data.length <= count || paused === true) return
-        const timer = setTimeout(() => {
-            setOffset((offset + 1) % (data.length + 1 - count))
+        targetRef.current = (offset + 1) % (data.length + 1 - count)
+        timeout.current = setTimeout(() => {
+            setOffset(targetRef.current)
         }, periodRef.current)
-        return () => clearTimeout(timer)
+        return () => clearTimeout(timeout.current)
     }, [count, data.length, offset, paused])
 
     useEffect(() => {

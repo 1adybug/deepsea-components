@@ -1,8 +1,10 @@
 import { css } from "@emotion/css"
 import { clsx } from "deepsea-tools"
-import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useRef, useState } from "react"
-import SmoothScrollbar from "smooth-scrollbar"
-import type { ScrollbarOptions } from "smooth-scrollbar/interfaces"
+import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useRef } from "react"
+import Scrollbar from "smooth-scrollbar"
+import type { ScrollbarOptions, ScrollStatus } from "smooth-scrollbar/interfaces"
+export { default as Scrollbar } from "smooth-scrollbar"
+export type { ScrollbarOptions, ScrollStatus } from "smooth-scrollbar/interfaces"
 
 export interface ScrollOptions extends Partial<ScrollbarOptions> {
     /** 滑块宽度 */
@@ -17,7 +19,9 @@ export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
     /** 容器样式 */
     containerStyle?: CSSProperties
     /** 滚动条实例 */
-    scrollbar?: ForwardedRef<SmoothScrollbar>
+    scrollbar?: ForwardedRef<Scrollbar>
+    /** 滚动条滚动事件 */
+    onScrollbar?: (status: ScrollStatus) => void
 }
 
 /**
@@ -25,19 +29,30 @@ export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
  * @description 注意 children 不是直接渲染在组件上的，而是渲染在内部的容器上
  */
 export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
-    const { children, containerClassName, containerStyle, options, className, scrollbar, ...rest } = props
+    const { children, containerClassName, containerStyle, options, className, style, scrollbar, onScrollbar, ...rest } = props
     const { thumbWidth, ...scrollbarOptions } = options || {}
     const ele = useRef<HTMLDivElement>(null)
-    const [ins, setIns] = useState<SmoothScrollbar | null>(null)
+    const bar = useRef<Scrollbar | null>(null)
 
-    useImperativeHandle(ref, () => ele.current!)
-    useImperativeHandle(scrollbar, () => ins!, [ins])
+    useImperativeHandle(ref, () => ele.current!, [])
+    useImperativeHandle(
+        scrollbar,
+        () => {
+            bar.current = Scrollbar.init(ele.current!, scrollbarOptions)
+            return bar.current
+        },
+        []
+    )
 
     useEffect(() => {
-        const ins = SmoothScrollbar.init(ele.current!, scrollbarOptions)
-        setIns(ins)
-        return () => ins.destroy()
+        return () => bar.current?.destroy()
     }, [])
+
+    useEffect(() => {
+        if (!onScrollbar) return
+        bar.current?.addListener(onScrollbar)
+        return () => bar.current?.removeListener(onScrollbar)
+    }, [onScrollbar])
 
     return (
         <div
@@ -46,27 +61,31 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
                 typeof thumbWidth === "number" &&
                     css`
                         .scrollbar-track.scrollbar-track-x {
-                            height: ${thumbWidth}px;
+                            height: var(--thumb-width);
                         }
 
                         .scrollbar-thumb.scrollbar-thumb-x {
-                            height: ${thumbWidth}px;
+                            height: var(--thumb-width);
                         }
 
                         .scrollbar-track.scrollbar-track-y {
-                            width: ${thumbWidth}px;
+                            width: var(--thumb-width);
                         }
 
                         .scrollbar-thumb.scrollbar-thumb-y {
-                            width: ${thumbWidth}px;
+                            width: var(--thumb-width);
                         }
                     `,
                 className
             )}
+            style={
+                {
+                    "--thumb-width": typeof thumbWidth === "number" ? `${thumbWidth}px` : undefined,
+                    ...style
+                } as CSSProperties
+            }
             {...rest}>
-            <div className={containerClassName} style={containerStyle}>
-                {children}
-            </div>
+            {children}
         </div>
     )
 })
