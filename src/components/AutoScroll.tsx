@@ -8,19 +8,28 @@ import { ScrollStatus } from "smooth-scrollbar/interfaces/scrollbar"
 import { Scroll, ScrollProps } from "./Scroll"
 
 export interface AutoScrollProps extends ScrollProps {
-    /** 轮播的数据 */
+    /** 轮播元素的个数 */
     count: number
 
     /** 轮播元素的高度 */
     itemHeight: number
 
-    /** 轮播动画的时间 */
-    animation: number
+    /**
+     * 轮播动画的时间，单位毫秒
+     * @default 1000
+     */
+    animation?: number
 
-    /** 每个元素的停留时间 */
-    duration: number
+    /**
+     * 每个元素的停留时间，单位毫秒
+     * @default 3000
+     */
+    duration?: number
 
-    /** 元素之间的间距 */
+    /** 
+     * 元素之间的间距 
+     * @default 0
+     */
     gap?: number
 
     /** 容器类名 */
@@ -29,12 +38,15 @@ export interface AutoScrollProps extends ScrollProps {
     /** 容器样式 */
     containerStyle?: CSSProperties
 
-    /** 在鼠标移入时是否继续播放 */
+    /** 
+     * 在鼠标移入时是否继续播放
+     * @default false
+     */
     playOnMouseEnter?: boolean
 }
 
 export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, ref) => {
-    const { count, itemHeight, animation, duration, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, scrollbar, ...rest } = props
+    const { count, itemHeight, animation = 1000, duration = 3000, onMouseEnter, onMouseLeave, gap = 0, containerClassName, containerStyle, children, playOnMouseEnter, scrollbar, ...rest } = props
     const bar = useRef<Scrollbar | null>(null)
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined)
     const ele = useRef<HTMLDivElement>(null)

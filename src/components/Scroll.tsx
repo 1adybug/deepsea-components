@@ -9,7 +9,13 @@ export * from "smooth-scrollbar/interfaces"
 
 export interface ScrollOptions extends Partial<ScrollbarOptions> {
     /** 滑块宽度 */
-    thumbWidth?: number
+    thumbWidth?: number | string
+    /** 滑块圆角大小 */
+    thumbRadius?: number | string
+    /** 滑块背景颜色 */
+    thumbColor?: string
+    /** 滚动条背景颜色 */
+    trackColor?: string
 }
 
 export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
@@ -23,7 +29,7 @@ export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
 
 export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
     const { children, options, className, style, scrollbar, onScrollbar, ...rest } = props
-    const { thumbWidth, ...scrollbarOptions } = options || {}
+    const { thumbWidth, thumbRadius, thumbColor, trackColor, ...scrollbarOptions } = options || {}
     const ele = useRef<HTMLDivElement>(null)
     const bar = useRef<Scrollbar | null>(null)
 
@@ -46,29 +52,37 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
         <div
             ref={ele}
             className={clsx(
-                typeof thumbWidth === "number" &&
-                    css`
-                        .scrollbar-track.scrollbar-track-x {
-                            height: var(--thumb-width);
-                        }
+                css`
+                    .scrollbar-track.scrollbar-track-x {
+                        ${thumbWidth !== undefined ? "height: var(--thumb-width);" : ""}
+                        ${trackColor !== undefined ? "background-color: var(--track-color);" : ""}
+                    }
 
-                        .scrollbar-thumb.scrollbar-thumb-x {
-                            height: var(--thumb-width);
-                        }
+                    .scrollbar-thumb.scrollbar-thumb-x {
+                        ${thumbWidth !== undefined ? "height: var(--thumb-width);" : ""}
+                        ${thumbRadius !== undefined ? "border-radius: var(--thumb-radius);" : ""}
+                        ${thumbColor !== undefined ? "background-color: var(--thumb-color);" : ""}
+                    }
 
-                        .scrollbar-track.scrollbar-track-y {
-                            width: var(--thumb-width);
-                        }
+                    .scrollbar-track.scrollbar-track-y {
+                        ${thumbWidth !== undefined ? "width: var(--thumb-width);" : ""}
+                        ${trackColor !== undefined ? "background-color: var(--track-color);" : ""}
+                    }
 
-                        .scrollbar-thumb.scrollbar-thumb-y {
-                            width: var(--thumb-width);
-                        }
-                    `,
+                    .scrollbar-thumb.scrollbar-thumb-y {
+                        ${thumbWidth !== undefined ? "width: var(--thumb-width);" : ""}
+                        ${thumbRadius !== undefined ? "border-radius: var(--thumb-radius);" : ""}
+                        ${thumbColor !== undefined ? "background-color: var(--thumb-color);" : ""}
+                    }
+                `,
                 className
             )}
             style={
                 {
-                    "--thumb-width": typeof thumbWidth === "number" ? `${thumbWidth}px` : undefined,
+                    "--thumb-width": typeof thumbWidth === "number" ? `${thumbWidth}px` : thumbWidth,
+                    "--thumb-radius": typeof thumbRadius === "number" ? `${thumbRadius}px` : thumbRadius,
+                    "--thumb-color": thumbColor,
+                    "--track-color": trackColor,
                     ...style
                 } as CSSProperties
             }
