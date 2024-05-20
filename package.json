@@ -34,7 +34,7 @@
         "ahooks": "^3.7.11",
         "deepsea-tools": "^1.24.1",
         "smooth-scrollbar": "^8.8.4",
-        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
     },
     "devDependencies": {
         "@types/react": "^18.3.1",
