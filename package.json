@@ -33,6 +33,7 @@
         "@emotion/css": "^11.11.2",
         "ahooks": "^3.7.11",
         "deepsea-tools": "npm:deepsea-tools@latest",
+        "hls.js": "^1.5.8",
         "smooth-scrollbar": "^8.8.4",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
     },
