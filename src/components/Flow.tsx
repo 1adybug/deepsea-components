@@ -3,7 +3,7 @@
 import { css } from "@emotion/css"
 import { clsx } from "deepsea-tools"
 import { CSSProperties, HTMLAttributes, Key, ReactNode, useEffect, useRef, useState } from "react"
-import { px, styleWithCSSVariable } from "../utils"
+import { px, transformCSSVariable } from "../utils"
 
 export interface FlowSizeData {
     /** 容器宽度 */
@@ -53,13 +53,21 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     render: (item: T, index: number, arr: T[]) => ReactNode
     /** key释放器，默认为 index */
     keyExactor?: (item: T, index: number, arr: T[]) => Key
-    /** 容器类名 */
+    /**
+     * 渲染的元素由两层容器包裹，外层容器类名
+     */
     wrapperClassName?: string
-    /** 容器样式 */
+    /**
+     * 渲染的元素由两层容器包裹，外层容器样式
+     */
     wrapperStyle?: CSSProperties
-    /** 容器类名 */
+    /** 
+     * 渲染的元素由两层容器包裹，内层容器类名
+     */
     containerClassName?: string
-    /** 容器样式 */
+    /**
+     * 渲染的元素由两层容器包裹，内层容器样式
+     */
     containerStyle?: CSSProperties
     /** 节流时间，单位毫秒，默认200ms，传入 0 不节流 */
     throttle?: number
@@ -158,7 +166,7 @@ export function Flow<T>(props: FlowProps<T>) {
                 `,
                 className
             )}
-            style={styleWithCSSVariable({ "--height": px(height) })}
+            style={transformCSSVariable({ height: px(height) }, style)}
             {...rest}>
             {showItems &&
                 data.map((item, index, arr) => (
@@ -176,14 +184,16 @@ export function Flow<T>(props: FlowProps<T>) {
                             `,
                             wrapperClassName
                         )}
-                        style={styleWithCSSVariable({
-                            "--width": px(itemWidth),
-                            "--height": px(itemHeight),
-                            "--transition": transitionDuration === 0 ? "none" : `all ${transitionDuration || 400}ms`,
-                            "--left": px(getPosition(index).left),
-                            "--top": px(getPosition(index).top),
-                            ...wrapperStyle
-                        })}>
+                        style={transformCSSVariable(
+                            {
+                                width: px(itemWidth),
+                                height: px(itemHeight),
+                                transition: transitionDuration === 0 ? "none" : `all ${transitionDuration || 400}ms`,
+                                left: px(getPosition(index).left),
+                                top: px(getPosition(index).top)
+                            },
+                            wrapperStyle
+                        )}>
                         <div
                             className={clsx(
                                 css`
@@ -193,7 +203,7 @@ export function Flow<T>(props: FlowProps<T>) {
                                 `,
                                 containerClassName
                             )}
-                            style={styleWithCSSVariable({ "--display": getHidden(index) ? "none" : "block", ...containerStyle })}>
+                            style={transformCSSVariable({ display: getHidden(index) ? "none" : "block" }, containerStyle)}>
                             {render(item, index, arr)}
                         </div>
                     </div>

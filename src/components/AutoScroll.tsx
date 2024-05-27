@@ -6,6 +6,7 @@ import { clsx, getArray } from "deepsea-tools"
 import { CSSProperties, forwardRef, MouseEvent as ReactMouseEvent, useEffect, useImperativeHandle, useRef } from "react"
 import Scrollbar from "smooth-scrollbar"
 import { ScrollStatus } from "smooth-scrollbar/interfaces/scrollbar"
+import { px, transformCSSVariable } from "../utils"
 import { Scroll, ScrollProps } from "./Scroll"
 
 export interface AutoScrollProps extends ScrollProps {
@@ -123,7 +124,7 @@ export const AutoScroll = forwardRef<HTMLDivElement, AutoScrollProps>((props, re
                     `,
                     containerClassName
                 )}
-                style={{ "--gap": `${gap}px`, ...containerStyle } as CSSProperties}>
+                style={transformCSSVariable({ gap: px(gap) }, containerStyle)}>
                 {children}
             </div>
         </Scroll>

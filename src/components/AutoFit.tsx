@@ -3,6 +3,7 @@
 import { css } from "@emotion/css"
 import { clsx } from "deepsea-tools"
 import { forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
+import { px, transformCSSVariable } from "../utils"
 
 export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
     /** 设计稿宽度，默认 1920 */
@@ -29,9 +30,13 @@ export interface AutoFitProps extends HTMLAttributes<HTMLDivElement> {
  * 5. 元素的属性、事件、资源并不是立即加载的，会有一帧的延迟，在第一次完成缩放后才会显示
  */
 export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => {
-    const { width = 1920, height = 1080, direction, className, ...rest } = props
+    const { width: designWidth = 1920, height: designHeight = 1080, direction, className, style, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
     const [show, setShow] = useState(false)
+    const [transform, setTransform] = useState<string | undefined>(undefined)
+    const [width, setWidth] = useState<string | undefined>(undefined)
+    const [height, setHeight] = useState<string | undefined>(undefined)
+
     useImperativeHandle(ref, () => ele.current!, [ele.current])
     useLayoutEffect(() => {
         const element = ele.current
@@ -41,27 +46,27 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
             const entry = entries[0]
             const { contentRect } = entry
             if (direction === "horizontal") {
-                const scale = contentRect.width / width
-                element?.style.setProperty("--transform", `scale(${scale})`)
-                element?.style.setProperty("--width", `${width}px`)
-                element?.style.setProperty("--height", `${contentRect.height / scale}px`)
+                const scale = contentRect.width / designWidth
+                setTransform(`scale(${scale})`)
+                setWidth(px(designWidth))
+                setHeight(px(contentRect.height / scale))
             } else if (direction === "vertical") {
-                const scale = contentRect.height / height
-                element?.style.setProperty("--transform", `scale(${scale})`)
-                element?.style.setProperty("--width", `${contentRect.width / scale}px`)
-                element?.style.setProperty("--height", `${height}px`)
+                const scale = contentRect.height / designHeight
+                setTransform(`scale(${scale})`)
+                setWidth(px(contentRect.width / scale))
+                setHeight(px(designHeight))
             } else {
-                const scale = Math.min(contentRect.width / width, contentRect.height / height)
-                element?.style.setProperty("--transform", `translateX(${(contentRect.width - width * scale) / 2}px) translateY(${(contentRect.height - height * scale) / 2}px) scale(${scale})`)
-                element?.style.setProperty("--width", `${width}px`)
-                element?.style.setProperty("--height", `${height}px`)
+                const scale = Math.min(contentRect.width / designWidth, contentRect.height / designHeight)
+                setTransform(`translateX(${(contentRect.width - designWidth * scale) / 2}px) translateY(${(contentRect.height - designHeight * scale) / 2}px) scale(${scale})`)
+                setWidth(px(designWidth))
+                setHeight(px(designHeight))
             }
             setShow(true)
         }
         const observer = new ResizeObserver(listener)
         observer.observe(parent)
         return () => observer.disconnect()
-    }, [ele.current?.parentElement, width, height, direction])
+    }, [ele.current?.parentElement, designWidth, designHeight, direction])
 
     if (process.env.NODE_ENV === "development") {
         useEffect(() => {
@@ -89,6 +94,7 @@ export const AutoFit = forwardRef<HTMLDivElement, AutoFitProps>((props, ref) => 
                 `,
                 className
             )}
+            style={transformCSSVariable({ transform, width, height }, style)}
             {...rest}
         />
     )

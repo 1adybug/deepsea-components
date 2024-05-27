@@ -18,14 +18,12 @@ const HlsPlayer = forwardRef<HTMLVideoElement, HlsPlayerProps>((props, ref) => {
         if (!player || !src) return
         if (player.canPlayType("application/vnd.apple.mpegurl")) {
             player.src = src
-            player.play()
             return
         }
         if (Hls.isSupported()) {
             const hls = new Hls()
             hls.loadSource(src)
             hls.attachMedia(player)
-            player.play()
             return () => {
                 hls.destroy()
             }

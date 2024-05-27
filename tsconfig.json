@@ -3,9 +3,9 @@
         "strict": true,
         "declaration": true,
         "skipLibCheck": true,
-        "baseUrl": "./",
         "jsx": "react-jsx",
         "target": "ESNext",
         "moduleResolution": "Bundler"
-    }
+    },
+    "exclude": ["dist"]
 }

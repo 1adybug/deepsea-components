@@ -5,6 +5,7 @@ import { clsx } from "deepsea-tools"
 import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes, useEffect, useImperativeHandle, useLayoutEffect, useRef } from "react"
 import Scrollbar from "smooth-scrollbar"
 import type { ScrollbarOptions, ScrollListener } from "smooth-scrollbar/interfaces"
+import { px, transformCSSVariable } from "../utils"
 export { default as Scrollbar } from "smooth-scrollbar"
 export * from "smooth-scrollbar/interfaces"
 
@@ -14,9 +15,9 @@ export interface ScrollOptions extends Partial<ScrollbarOptions> {
     /** 滑块圆角大小 */
     thumbRadius?: number | string
     /** 滑块背景颜色 */
-    thumbColor?: string
+    thumbColor?: CSSProperties["backgroundColor"]
     /** 滚动条背景颜色 */
-    trackColor?: string
+    trackColor?: CSSProperties["backgroundColor"]
 }
 
 export interface ScrollProps extends HTMLAttributes<HTMLDivElement> {
@@ -78,15 +79,15 @@ export const Scroll = forwardRef<HTMLDivElement, ScrollProps>((props, ref) => {
                 `,
                 className
             )}
-            style={
+            style={transformCSSVariable(
                 {
-                    "--thumb-width": typeof thumbWidth === "number" ? `${thumbWidth}px` : thumbWidth,
-                    "--thumb-radius": typeof thumbRadius === "number" ? `${thumbRadius}px` : thumbRadius,
-                    "--thumb-color": thumbColor,
-                    "--track-color": trackColor,
-                    ...style
-                } as CSSProperties
-            }
+                    thumbWidth: px(thumbWidth),
+                    thumbRadius: px(thumbRadius),
+                    thumbColor,
+                    trackColor
+                },
+                style
+            )}
             {...rest}>
             {children}
         </div>
