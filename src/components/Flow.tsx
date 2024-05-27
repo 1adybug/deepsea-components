@@ -35,10 +35,16 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     itemWidth: number
     /** 元素高度 */
     itemHeight: number
-    /** 列间距 */
-    columnGap?: number | null | (number | null)[]
+    /**
+     * 列间距
+     * 1. 如果是数字，表示列间距是固定的
+     * 2. 如果是 auto，表示会在尽可能放进更多列的情况下，列间距是平均的
+     * 2. 如果是数组，表示列间距是区间的，第一个元素是最小值，第二个元素是最大值
+     */
+    columnGap?: number | "auto" | [number | "auto", number | "auto"]
     /** 行间距 */
     rowGap?: number
+    gap?: number
     /** 最大行数 */
     maxRows?: number | null
     /** 源数据 */
@@ -55,26 +61,26 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     containerClassName?: string
     /** 容器样式 */
     containerStyle?: CSSProperties
-    /** 节流时间，单位毫秒，默认200ms，传入 null 不节流 */
-    throttle?: number | null
-    /** 动画时间，单位毫秒，默认400ms，传入 null 不展示动画 */
-    transitionDuration?: number | null
+    /** 节流时间，单位毫秒，默认200ms，传入 0 不节流 */
+    throttle?: number
+    /** 动画时间，单位毫秒，默认400ms，传入 0 不展示动画 */
+    transitionDuration?: number
     /** 变化的回调函数 */
     onSizeChange?: (sizeData: FlowSizeData) => void
 }
 
-export function getGapRange(gap?: undefined | number | null | (number | null)[]): [number, number | null] {
+export function getGapRange(gap?: undefined | number | "auto" | (number | "auto")[]): [number, number | "auto"] {
     if (typeof gap === "number") return [gap, gap]
-    if (Array.isArray(gap)) return [gap[0] || 0, gap[1]]
-    return [0, null]
+    if (Array.isArray(gap)) return [typeof gap[0] === "number" ? gap[0] : 0, gap[1]]
+    return [0, "auto"]
 }
 
-export function getGapCountAndSize(width: number, itemWidth: number, minGap: number, maxGap: number | null): [number, number] {
+export function getGapCountAndSize(width: number, itemWidth: number, minGap: number, maxGap: number | "auto"): [number, number] {
     const count = Math.floor((width + minGap) / (itemWidth + minGap)) || 1
     if (count === 1) return [count, 0]
     const averageGap = (width - itemWidth * count) / (count - 1)
     if (averageGap < minGap) return [count, minGap]
-    if (maxGap !== null && averageGap > maxGap) return [count, maxGap]
+    if (maxGap !== "auto" && averageGap > maxGap) return [count, maxGap]
     return [count, averageGap]
 }
 
@@ -85,7 +91,9 @@ interface Position {
 
 /** 自适应浮动组件 */
 export function Flow<T>(props: FlowProps<T>) {
-    const { itemWidth, itemHeight, columnGap, rowGap = 0, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, ...rest } = props
+    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, ...rest } = props
+    rowGap ??= gap
+    columnGap ??= gap
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
     const [width, setWidth] = useState(0)
     const [columnCount, setColumnCount] = useState(1)
@@ -101,7 +109,7 @@ export function Flow<T>(props: FlowProps<T>) {
         const x = index - y * columnCount
         return {
             left: x * (itemWidth + columnGapSize),
-            top: y * (itemHeight + rowGap)
+            top: y * (itemHeight + rowGap!)
         }
     }
 
@@ -122,7 +130,7 @@ export function Flow<T>(props: FlowProps<T>) {
                 setColumnCount(newColumnCount)
                 setColumnGapSize(newColumnGapSize)
             }
-            if (throttle === null) {
+            if (throttle === 0) {
                 task()
             } else {
                 timeout = window.setTimeout(task, throttle || 200)
@@ -171,7 +179,7 @@ export function Flow<T>(props: FlowProps<T>) {
                         style={styleWithCSSVariable({
                             "--width": px(itemWidth),
                             "--height": px(itemHeight),
-                            "--transition": transitionDuration === null ? "none" : `all ${transitionDuration || 400}ms`,
+                            "--transition": transitionDuration === 0 ? "none" : `all ${transitionDuration || 400}ms`,
                             "--left": px(getPosition(index).left),
                             "--top": px(getPosition(index).top),
                             ...wrapperStyle
