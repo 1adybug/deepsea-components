@@ -1,6 +1,9 @@
 "use client"
 
-import { CSSProperties, HTMLAttributes, ReactNode, useEffect, useRef, useState } from "react"
+import { css } from "@emotion/css"
+import { clsx } from "deepsea-tools"
+import { CSSProperties, HTMLAttributes, Key, ReactNode, useEffect, useRef, useState } from "react"
+import { px, styleWithCSSVariable } from "../utils"
 
 export interface FlowSizeData {
     /** 容器宽度 */
@@ -41,9 +44,13 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     /** 源数据 */
     data: T[]
     /** 渲染 */
-    render: (item: T, index: number, hidden: boolean) => ReactNode
+    render: (item: T, index: number, arr: T[]) => ReactNode
     /** key释放器，默认为 index */
-    keyExactor?: (item: T, index: number) => string | number
+    keyExactor?: (item: T, index: number, arr: T[]) => Key
+    /** 容器类名 */
+    wrapperClassName?: string
+    /** 容器样式 */
+    wrapperStyle?: CSSProperties
     /** 容器类名 */
     containerClassName?: string
     /** 容器样式 */
@@ -78,7 +85,7 @@ interface Position {
 
 /** 自适应浮动组件 */
 export function Flow<T>(props: FlowProps<T>) {
-    const { itemWidth, itemHeight, columnGap, rowGap = 0, maxRows, data, render, keyExactor, className, style, containerClassName, containerStyle, throttle, transitionDuration, onSizeChange, ...rest } = props
+    const { itemWidth, itemHeight, columnGap, rowGap = 0, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, ...rest } = props
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
     const [width, setWidth] = useState(0)
     const [columnCount, setColumnCount] = useState(1)
@@ -133,20 +140,54 @@ export function Flow<T>(props: FlowProps<T>) {
     }, [width, height, columnGapSize, columnCount, rowGap, contentShownRows, data.length, itemWidth, itemHeight, maxRows])
 
     return (
-        <div ref={ele} className={className} style={{ position: "relative", boxSizing: "border-box", height, ...style }} {...rest}>
+        <div
+            ref={ele}
+            className={clsx(
+                css`
+                    position: relative;
+                    height: var(--height);
+                    overflow: hidden;
+                `,
+                className
+            )}
+            style={styleWithCSSVariable({ "--height": px(height) })}
+            {...rest}>
             {showItems &&
-                data.map((item, index) => (
+                data.map((item, index, arr) => (
                     <div
-                        key={keyExactor ? keyExactor(item, index) : index}
-                        className={containerClassName}
-                        style={{
-                            position: "absolute",
-                            width: itemWidth,
-                            height: itemHeight,
-                            transition: transitionDuration !== null ? `all ${transitionDuration ?? 400}ms` : undefined,
-                            ...getPosition(index)
-                        }}>
-                        <div style={{ width: itemWidth, height: itemHeight, display: maxRows && index >= maxRows * columnCount ? "none" : "block", ...containerStyle }}>{render(item, index, getHidden(index))}</div>
+                        key={keyExactor ? keyExactor(item, index, arr) : index}
+                        className={clsx(
+                            css`
+                                position: absolute;
+                                width: var(--width);
+                                height: var(--height);
+                                transition: var(--transition);
+                                left: 0;
+                                top: 0;
+                                transform: translate(var(--left), var(--top));
+                            `,
+                            wrapperClassName
+                        )}
+                        style={styleWithCSSVariable({
+                            "--width": px(itemWidth),
+                            "--height": px(itemHeight),
+                            "--transition": transitionDuration === null ? "none" : `all ${transitionDuration || 400}ms`,
+                            "--left": px(getPosition(index).left),
+                            "--top": px(getPosition(index).top),
+                            ...wrapperStyle
+                        })}>
+                        <div
+                            className={clsx(
+                                css`
+                                    width: 100%;
+                                    height: 100%;
+                                    display: var(--display);
+                                `,
+                                containerClassName
+                            )}
+                            style={styleWithCSSVariable({ "--display": getHidden(index) ? "none" : "block", ...containerStyle })}>
+                            {render(item, index, arr)}
+                        </div>
                     </div>
                 ))}
         </div>
