@@ -1,8 +1,9 @@
 "use client"
 
 import { css } from "@emotion/css"
+import { useSize } from "ahooks"
 import { clsx } from "deepsea-tools"
-import { CSSProperties, HTMLAttributes, Key, ReactNode, useEffect, useRef, useState } from "react"
+import { CSSProperties, HTMLAttributes, Key, ReactNode, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { px, transformCSSVariable } from "../utils"
 
 export interface FlowSizeData {
@@ -75,8 +76,7 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     transitionDuration?: number
     /** 变化的回调函数 */
     onSizeChange?: (sizeData: FlowSizeData) => void
-    /** 宽度 */
-    width?: number
+    element?: RefObject<HTMLDivElement>
 }
 
 export function getGapRange(gap?: undefined | number | "auto" | (number | "auto")[]): [number, number | "auto"] {
@@ -100,7 +100,7 @@ interface Position {
 }
 
 function RealFlow<T>(props: FlowProps<T> & { width: number }) {
-    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, width, ...rest } = props
+    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, width, element, ...rest } = props
     rowGap ??= gap
     columnGap ??= gap
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
@@ -131,6 +131,8 @@ function RealFlow<T>(props: FlowProps<T> & { width: number }) {
         setColumnCount(newColumnCount)
         setColumnGapSize(newColumnGapSize)
     }
+
+    useImperativeHandle(element, () => ele.current!, [ele.current])
 
     useEffect(() => {
         task()
@@ -204,7 +206,8 @@ function RealFlow<T>(props: FlowProps<T> & { width: number }) {
 
 /** 自适应浮动组件 */
 export function Flow<T>(props: FlowProps<T>) {
-    const { width, data } = props
-    if (!width || data.length === 0) return null
-    return <RealFlow {...props} width={width} />
+    const ele = useRef<HTMLDivElement>(null)
+    const size = useSize(ele)
+    if (!size) return <div ref={ele} {...props} />
+    return <RealFlow element={ele} {...props} width={size.width} />
 }
