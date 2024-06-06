@@ -61,7 +61,7 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
      * 渲染的元素由两层容器包裹，外层容器样式
      */
     wrapperStyle?: CSSProperties
-    /** 
+    /**
      * 渲染的元素由两层容器包裹，内层容器类名
      */
     containerClassName?: string
@@ -75,6 +75,8 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     transitionDuration?: number
     /** 变化的回调函数 */
     onSizeChange?: (sizeData: FlowSizeData) => void
+    /** 宽度 */
+    width?: number
 }
 
 export function getGapRange(gap?: undefined | number | "auto" | (number | "auto")[]): [number, number | "auto"] {
@@ -97,16 +99,14 @@ interface Position {
     top: number
 }
 
-/** 自适应浮动组件 */
-export function Flow<T>(props: FlowProps<T>) {
-    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, ...rest } = props
+function RealFlow<T>(props: FlowProps<T> & { width: number }) {
+    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, width, ...rest } = props
     rowGap ??= gap
     columnGap ??= gap
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
-    const [width, setWidth] = useState(0)
     const [columnCount, setColumnCount] = useState(1)
     const [columnGapSize, setColumnGapSize] = useState(minColumnGap)
-    const [showItems, setShowItems] = useState(false)
+
     const ele = useRef<HTMLDivElement>(null)
     const contentRows = Math.ceil(data.length / columnCount)
     const contentShownRows = typeof maxRows === "number" ? Math.min(contentRows, maxRows) : contentRows
@@ -126,30 +126,21 @@ export function Flow<T>(props: FlowProps<T>) {
         return index >= maxRows * columnCount
     }
 
-    useEffect(() => {
-        let timeout: number
-        const observer = new ResizeObserver(entries => {
-            clearTimeout(timeout)
-            function task() {
-                const { width } = entries[0].contentRect
-                const [newColumnCount, newColumnGapSize] = getGapCountAndSize(width, itemWidth, minColumnGap, maxColumnGap)
-                setShowItems(true)
-                setWidth(width)
-                setColumnCount(newColumnCount)
-                setColumnGapSize(newColumnGapSize)
-            }
-            if (throttle === 0) {
-                task()
-            } else {
-                timeout = window.setTimeout(task, throttle || 200)
-            }
-        })
-        observer.observe(ele.current!)
+    function task() {
+        const [newColumnCount, newColumnGapSize] = getGapCountAndSize(width, itemWidth, minColumnGap, maxColumnGap)
+        setColumnCount(newColumnCount)
+        setColumnGapSize(newColumnGapSize)
+    }
 
-        return () => {
-            observer.disconnect()
-        }
-    }, [itemWidth, throttle, columnGap])
+    useEffect(() => {
+        task()
+    }, [])
+
+    useEffect(() => {
+        if (throttle === 0) return task()
+        const timeout = setTimeout(task, throttle || 200)
+        return () => clearTimeout(timeout)
+    }, [width, itemWidth, throttle, columnGap])
 
     useEffect(() => {
         onSizeChange?.({ width, height, itemWidth, itemHeight, columnGap: columnGapSize, columnCount, rowGap: rowGap!, rowCount: contentShownRows, overflow: data.length > contentShownRows * columnCount, itemCount: data.length, maxRows: maxRows ?? null })
@@ -168,46 +159,52 @@ export function Flow<T>(props: FlowProps<T>) {
             )}
             style={transformCSSVariable({ height: px(height) }, style)}
             {...rest}>
-            {showItems &&
-                data.map((item, index, arr) => (
+            {data.map((item, index, arr) => (
+                <div
+                    key={keyExactor ? keyExactor(item, index, arr) : index}
+                    className={clsx(
+                        css`
+                            position: absolute;
+                            width: var(--width);
+                            height: var(--height);
+                            transition: var(--transition);
+                            left: 0;
+                            top: 0;
+                            transform: translate(var(--left), var(--top));
+                        `,
+                        wrapperClassName
+                    )}
+                    style={transformCSSVariable(
+                        {
+                            width: px(itemWidth),
+                            height: px(itemHeight),
+                            transition: transitionDuration === 0 ? "none" : `all ${transitionDuration || 400}ms`,
+                            left: px(getPosition(index).left),
+                            top: px(getPosition(index).top)
+                        },
+                        wrapperStyle
+                    )}>
                     <div
-                        key={keyExactor ? keyExactor(item, index, arr) : index}
                         className={clsx(
                             css`
-                                position: absolute;
-                                width: var(--width);
-                                height: var(--height);
-                                transition: var(--transition);
-                                left: 0;
-                                top: 0;
-                                transform: translate(var(--left), var(--top));
+                                width: 100%;
+                                height: 100%;
+                                display: var(--display);
                             `,
-                            wrapperClassName
+                            containerClassName
                         )}
-                        style={transformCSSVariable(
-                            {
-                                width: px(itemWidth),
-                                height: px(itemHeight),
-                                transition: transitionDuration === 0 ? "none" : `all ${transitionDuration || 400}ms`,
-                                left: px(getPosition(index).left),
-                                top: px(getPosition(index).top)
-                            },
-                            wrapperStyle
-                        )}>
-                        <div
-                            className={clsx(
-                                css`
-                                    width: 100%;
-                                    height: 100%;
-                                    display: var(--display);
-                                `,
-                                containerClassName
-                            )}
-                            style={transformCSSVariable({ display: getHidden(index) ? "none" : "block" }, containerStyle)}>
-                            {render(item, index, arr)}
-                        </div>
+                        style={transformCSSVariable({ display: getHidden(index) ? "none" : "block" }, containerStyle)}>
+                        {render(item, index, arr)}
                     </div>
-                ))}
+                </div>
+            ))}
         </div>
     )
+}
+
+/** 自适应浮动组件 */
+export function Flow<T>(props: FlowProps<T>) {
+    const { width, data } = props
+    if (!width || data.length === 0) return null
+    return <RealFlow {...props} width={width} />
 }
