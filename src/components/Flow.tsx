@@ -206,8 +206,10 @@ function RealFlow<T>(props: FlowProps<T> & { width: number }) {
 
 /** 自适应浮动组件 */
 export function Flow<T>(props: FlowProps<T>) {
+    const { itemWidth, itemHeight, columnGap, rowGap, gap, maxRows, data, render, keyExactor, wrapperClassName, wrapperStyle, containerClassName, containerStyle, throttle, transitionDuration, onSizeChange, element, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
     const size = useSize(ele)
-    if (!size) return <div ref={ele} {...props} />
+    useImperativeHandle(element, () => ele.current!, [ele.current])
+    if (!size) return <div ref={ele} {...rest} />
     return <RealFlow element={ele} {...props} width={size.width} />
 }
