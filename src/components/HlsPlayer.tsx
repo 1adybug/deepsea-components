@@ -7,7 +7,7 @@ export interface HlsPlayerProps extends Omit<MediaHTMLAttributes<HTMLVideoElemen
     src: string
 }
 
-const HlsPlayer = forwardRef<HTMLVideoElement, HlsPlayerProps>((props, ref) => {
+export const HlsPlayer = forwardRef<HTMLVideoElement, HlsPlayerProps>((props, ref) => {
     const { src, ...rest } = props
     const video = useRef<HTMLVideoElement>(null)
 
@@ -32,5 +32,3 @@ const HlsPlayer = forwardRef<HTMLVideoElement, HlsPlayerProps>((props, ref) => {
 
     return <video ref={video} {...rest} />
 })
-
-export default HlsPlayer
