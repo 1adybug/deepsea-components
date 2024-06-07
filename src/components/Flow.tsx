@@ -85,13 +85,18 @@ export function getGapRange(gap?: undefined | number | "auto" | (number | "auto"
     return [0, "auto"]
 }
 
-export function getGapCountAndSize(width: number, itemWidth: number, minGap: number, maxGap: number | "auto"): [number, number] {
+export interface GapAndCount {
+    count: number
+    gap: number
+}
+
+export function getGapCountAndSize(width: number, itemWidth: number, minGap: number, maxGap: number | "auto"): GapAndCount {
     const count = Math.floor((width + minGap) / (itemWidth + minGap)) || 1
-    if (count === 1) return [count, 0]
+    if (count === 1) return { count, gap: 0 }
     const averageGap = (width - itemWidth * count) / (count - 1)
-    if (averageGap < minGap) return [count, minGap]
-    if (maxGap !== "auto" && averageGap > maxGap) return [count, maxGap]
-    return [count, averageGap]
+    if (averageGap < minGap) return { count, gap: minGap }
+    if (maxGap !== "auto" && averageGap > maxGap) return { count, gap: maxGap }
+    return { count, gap: averageGap }
 }
 
 export interface ManualFlowProps<T> extends FlowProps<T> {
@@ -105,8 +110,7 @@ export function ManualFlow<T>(props: ManualFlowProps<T>) {
     rowGap ??= gap
     columnGap ??= gap
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
-    const [columnCount, setColumnCount] = useState(1)
-    const [columnGapSize, setColumnGapSize] = useState(minColumnGap)
+    const [{ count: columnCount, gap: columnGapSize }, setGapAndCount] = useState(() => getGapCountAndSize(width, itemWidth, minColumnGap, maxColumnGap))
     const ele = useRef<HTMLDivElement>(null)
     const contentRows = Math.ceil(data.length / columnCount)
     const contentShownRows = typeof maxRows === "number" ? Math.min(contentRows, maxRows) : contentRows
@@ -126,23 +130,16 @@ export function ManualFlow<T>(props: ManualFlowProps<T>) {
         return index >= maxRows * columnCount
     }
 
-    function task() {
-        const [newColumnCount, newColumnGapSize] = getGapCountAndSize(width, itemWidth, minColumnGap, maxColumnGap)
-        setColumnCount(newColumnCount)
-        setColumnGapSize(newColumnGapSize)
-    }
-
     useImperativeHandle(element, () => ele.current!, [ele.current])
 
     useEffect(() => {
-        task()
-    }, [])
-
-    useEffect(() => {
+        function task() {
+            setGapAndCount(getGapCountAndSize(width, itemWidth, minColumnGap, maxColumnGap))
+        }
         if (throttle === 0) return task()
         const timeout = setTimeout(task, throttle || 200)
         return () => clearTimeout(timeout)
-    }, [width, itemWidth, throttle, columnGap])
+    }, [width, itemWidth, throttle, minColumnGap, maxColumnGap])
 
     useEffect(() => {
         onSizeChange?.({ width, height, itemWidth, itemHeight, columnGap: columnGapSize, columnCount, rowGap: rowGap!, rowCount: contentShownRows, overflow: data.length > contentShownRows * columnCount, itemCount: data.length, maxRows: maxRows ?? null })
