@@ -49,7 +49,7 @@ export interface FlowProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chil
     /** 最大行数 */
     maxRows?: number | null
     /** 源数据 */
-    data: T[]
+    data?: T[]
     /** 渲染 */
     render: (item: T, index: number, arr: T[]) => ReactNode
     /** key释放器，默认为 index */
@@ -94,25 +94,25 @@ export function getGapCountAndSize(width: number, itemWidth: number, minGap: num
     return [count, averageGap]
 }
 
-interface Position {
-    left: number
-    top: number
+export interface ManualFlowProps<T> extends FlowProps<T> {
+    /** 组件宽度，必须指定 */
+    width: number
 }
 
-function RealFlow<T>(props: FlowProps<T> & { width: number }) {
-    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data, render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, width, element, ...rest } = props
+/** 手动组件，由外界指定宽度，性能更好 */
+export function ManualFlow<T>(props: ManualFlowProps<T>) {
+    let { itemWidth, itemHeight, columnGap, rowGap, maxRows, data = [], render, keyExactor, className, style, wrapperClassName, wrapperStyle, throttle, transitionDuration, onSizeChange, containerClassName, containerStyle, gap = 0, width, element, ...rest } = props
     rowGap ??= gap
     columnGap ??= gap
     const [minColumnGap, maxColumnGap] = getGapRange(columnGap)
     const [columnCount, setColumnCount] = useState(1)
     const [columnGapSize, setColumnGapSize] = useState(minColumnGap)
-
     const ele = useRef<HTMLDivElement>(null)
     const contentRows = Math.ceil(data.length / columnCount)
     const contentShownRows = typeof maxRows === "number" ? Math.min(contentRows, maxRows) : contentRows
     const height = contentShownRows > 0 ? contentShownRows * (itemHeight + rowGap) - rowGap : 0
 
-    function getPosition(index: number): Position {
+    function getPosition(index: number) {
         const y = Math.floor(index / columnCount)
         const x = index - y * columnCount
         return {
@@ -211,5 +211,5 @@ export function Flow<T>(props: FlowProps<T>) {
     const size = useSize(ele)
     useImperativeHandle(element, () => ele.current!, [ele.current])
     if (!size) return <div ref={ele} {...rest} />
-    return <RealFlow element={ele} {...props} width={size.width} />
+    return <ManualFlow element={ele} {...props} width={size.width} />
 }
