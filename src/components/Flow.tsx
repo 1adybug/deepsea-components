@@ -206,8 +206,9 @@ export function Flow<T>(props: FlowProps<T>) {
     const { itemWidth, itemHeight, columnGap, rowGap, gap, maxRows, data, render, keyExactor, wrapperClassName, wrapperStyle, containerClassName, containerStyle, throttle, transitionDuration, onSizeChange, element, ...rest } = props
     const ele = useRef<HTMLDivElement>(null)
     const size = useSize(ele)
+    const width = useRef(size?.width || 0)
+    if (size && size.width !== 0) width.current = size.width
     useImperativeHandle(element, () => ele.current!, [ele.current])
-    // 如果无法获取到宽度，直接返回
-    if (!size || size.width === 0) return <div ref={ele} {...rest} />
-    return <ManualFlow element={ele} {...props} width={size.width} />
+    if (width.current === 0) return <div ref={ele} {...rest} />
+    return <ManualFlow element={ele} {...props} width={width.current} />
 }
