@@ -207,6 +207,7 @@ export function Flow<T>(props: FlowProps<T>) {
     const ele = useRef<HTMLDivElement>(null)
     const size = useSize(ele)
     useImperativeHandle(element, () => ele.current!, [ele.current])
-    if (!size) return <div ref={ele} {...rest} />
+    // 如果无法获取到宽度，直接返回
+    if (!size || size.width === 0) return <div ref={ele} {...rest} />
     return <ManualFlow element={ele} {...props} width={size.width} />
 }
